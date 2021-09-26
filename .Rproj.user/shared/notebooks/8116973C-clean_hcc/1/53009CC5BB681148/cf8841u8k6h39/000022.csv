@@ -1,0 +1,8 @@
+"0","hc %>% "
+"0","  ggplot(aes(hcc_log_i)) +"
+"0","  geom_histogram() +"
+"0","  theme_hcc +"
+"0","  labs("
+"0","    fill = NULL,"
+"0","    x = ""Infant log(HCC) pg/mL"""
+"0","  )"

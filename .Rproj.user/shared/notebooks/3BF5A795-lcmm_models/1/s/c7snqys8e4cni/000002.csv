@@ -1,0 +1,15 @@
+"0","```r
+cort_class <- 
+  cort_lf %>% 
+  filter(!is.na(class)) %>% 
+  select(ID, class) %>% 
+  mutate(
+    class = factor(
+      class,
+      levels = c(1, 2),
+      labels = c(\"Decreasing\", \"Increasing\")
+    )
+  ) %>% 
+  distinct(ID, class)
+write_csv(cort_class, \"~/Box/lucy_king_files/BABIES/infant_cortisol/data/cort_class_20191213.csv\")
+```"

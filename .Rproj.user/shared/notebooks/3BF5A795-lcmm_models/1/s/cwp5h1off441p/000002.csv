@@ -1,0 +1,24 @@
+"0","```r
+# time of lab arrival
+lme_arrivetime <- lmer(
+  cort_B_winlog ~ 
+    time_hr +
+    scale(crf_time_arrived, scale = FALSE) +
+    (time_hr|ID), 
+  data = cort_lf
+)
+anova(lme_base, lme_arrivetime)
+```"
+"1","refitting model(s) with ML (instead of REML)
+"
+"1","Data: cort_lf
+Models:
+lme_base: cort_B_winlog ~ time_hr + (time_hr | ID)
+lme_arrivetime: cort_B_winlog ~ time_hr + scale(crf_time_arrived, scale = FALSE) + 
+lme_arrivetime:     (time_hr | ID)
+               Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)   
+lme_base        6 681.92 706.69 -334.96   669.92                            
+lme_arrivetime  7 676.76 705.65 -331.38   662.76 7.1649      1   0.007435 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+"

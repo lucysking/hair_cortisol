@@ -1,0 +1,38 @@
+"0","```r
+# subset infant data
+cort_infant <-
+  cort_lf %>% 
+  filter(person == \"i\") %>% 
+  rename(cort_mean_B = cort_mean) %>% 
+  select(-person)
+# subset maternal data
+cort_mom <-
+  cort_lf %>% 
+  filter(person == \"M\") %>% 
+  rename(cort_mean_M = cort_mean) %>% 
+  select(-person)
+# joing infant and maternal data
+cort_lf <-
+  cort_infant %>% 
+  left_join(cort_mom, by = c(\"ID\", \"sample\")) %>% 
+  mutate(
+    # create variables to note assay errors
+    cort_assay_error_B = case_when(
+      str_detect(cort_mean_B, \"qns\") == TRUE ~ \"qns\",
+      str_detect(cort_mean_B, \"\\*\") == TRUE ~ \"interference likely\",
+      TRUE ~ NA_character_
+    ),
+    cort_assay_error_M = case_when(
+      str_detect(cort_mean_M, \"qns\") == TRUE~ \"qns\",
+      str_detect(cort_mean_M, \"\\*\") == TRUE~ \"interference likely\",
+      TRUE ~ NA_character_
+    )
+  ) %>% 
+  # convert cortisol values to numeric; will result in NAs for those marked as \"qns\" or \"***\" (NAs introduced by coercion message)
+  mutate_at(
+    vars(ID, cort_mean_B, cort_mean_M),
+    as.numeric
+  )
+```"
+"1","NAs introduced by coercionNAs introduced by coercion
+"

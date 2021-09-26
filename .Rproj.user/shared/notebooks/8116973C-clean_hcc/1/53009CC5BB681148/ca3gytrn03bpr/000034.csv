@@ -1,0 +1,6 @@
+"0","hc %>% "
+"0","  group_by(timepoint) %>% "
+"0","  summarise_at("
+"0","    vars(seg_week),"
+"0","    funs(mean, sd, min, max)"
+"0","  )"

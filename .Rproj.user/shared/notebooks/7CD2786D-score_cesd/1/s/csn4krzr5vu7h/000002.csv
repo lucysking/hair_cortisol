@@ -1,0 +1,3 @@
+"0","write_csv(cesd_wf, ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/CESD/cesd_wf_20201001.csv"")"
+"0","write_csv(cesd, ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/CESD/cesd_lf_20201001.csv"")"
+"0","write_csv(cesd_6mo, ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/CESD/cesd_6mo_complete.csv"")"

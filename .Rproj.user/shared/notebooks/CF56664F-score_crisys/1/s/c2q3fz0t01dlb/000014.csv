@@ -1,0 +1,458 @@
+"0","# pregnancy"
+"0","crisys %>% "
+"0","  filter(timepoint == ""pregnancy"") %>% "
+"0","  select("
+"0","    crisys_2,"
+"0","    crisys_3,"
+"0","    crisys_5:crisys_22,"
+"0","    crisys_24,"
+"0","    crisys_27:crisys_30,"
+"0","    crisys_32:crisys_54,"
+"0","    crisys_58:crisys_67,"
+"0","    crisys_70:crisys_71,"
+"0","    #variables too missing to compute"
+"0","    -crisys_9,"
+"0","    -crisys_36,"
+"0","    -crisys_42,"
+"0","    -crisys_61,"
+"0","    -crisys_24,"
+"0","    -crisys_47,"
+"0","    -crisys_52,"
+"0","    -crisys_66,"
+"0","    -crisys_70,"
+"0","    -crisys_71"
+"0","  ) %>% "
+"0","  psych::alpha()"
+"2","Warning in cor.smooth(r) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","Warning in psych::alpha(.) :"
+"2","
+ "
+"2"," Some items were negatively correlated with the total scale and probably 
+should be reversed.  
+To do this, run the function again with the 'check.keys=TRUE' option
+"
+"1","Some items ("
+"1"," "
+"1","crisys_7"
+"1"," "
+"1","crisys_12"
+"1"," "
+"1","crisys_22"
+"1"," "
+"1","crisys_30"
+"1"," "
+"1","crisys_32"
+"1"," "
+"1","crisys_33"
+"1"," "
+"1","crisys_34"
+"1"," "
+"1","crisys_38"
+"1"," "
+"1","crisys_39"
+"1"," "
+"1","crisys_40"
+"1"," "
+"1","crisys_41"
+"1"," "
+"1","crisys_43"
+"1"," "
+"1","crisys_44"
+"1"," "
+"1","crisys_45"
+"1"," "
+"1","crisys_46"
+"1"," "
+"1","crisys_49"
+"1"," "
+"1","crisys_50"
+"1"," "
+"1","crisys_51"
+"1"," "
+"1","crisys_53"
+"1"," "
+"1","crisys_62"
+"1"," "
+"1","crisys_63"
+"1"," "
+"1","crisys_65"
+"1"," "
+"1","crisys_67"
+"1"," "
+"1",") were negatively correlated with the total scale and 
+probably should be reversed.  
+To do this, run the function again with the 'check.keys=TRUE' option"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"2","Warning in cor.smooth(R) :"
+"2","
+ "
+"2"," Matrix was not positive definite, smoothing was done
+"
+"2","In smc, smcs < 0 were set to .0
+"
+"1","
+Reliability analysis "
+"1"," "
+"1"," 
+"
+"1","Call: "
+"1","psych::alpha(x = .)
+"
+"1","
+ "

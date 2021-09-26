@@ -1,0 +1,11 @@
+"0","```r
+cort_lf <-
+  cort_lf %>% 
+  group_by(sample) %>% 
+  mutate(
+    s1_cort_B_winlog = winsorize(s1_cort_B_log, product = 2),
+    s1_cort_M_winlog = winsorize(s1_cort_M_log, product = 2),
+    cort_B_winlog = winsorize(cort_B_log, product = 2),
+    cort_M_winlog = winsorize(cort_M_log, product = 2)
+  )
+```"

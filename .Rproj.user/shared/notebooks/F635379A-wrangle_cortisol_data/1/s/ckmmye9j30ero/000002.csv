@@ -1,0 +1,81 @@
+"0","```r
+crf_wf <-
+  read_csv(crf_file) %>% 
+  mutate(
+    crf_date = parse_date(crf_date, format = \"%m/%d/%y\")
+  ) %>% 
+  mutate(
+    #trasnform lab arrival time to hours since midnight
+    crf_time_arrived = as.numeric(as.duration(crf_time_arrived), \"hours\"),
+    #S1 food error == 1 if ate < 20 minutes prior to S1
+    S1_fooderror = if_else(
+      (crf_mealtime %--% saliva1_time) / minutes(1) < 20 &
+        (crf_mealtime %--% saliva1_time) / minutes(1) >= 0,
+      1, 0
+    ),
+    #transform s1 time to hours since midnight
+    s1_time = as.numeric(as.duration(saliva1_time), \"hours\"),
+    #set pre-SFP sample to time = 0
+    s2_time = 0,
+    #set times of remaining samples to difference from pre-SFP in minutes
+    s3_time = (saliva2_time %--% saliva3_time) / minutes(1),
+    s4_time = (saliva2_time %--% saliva4_time) / minutes(1),
+    s5_time = (saliva2_time %--% saliva5_time) / minutes(1)
+  ) %>% 
+  select(
+    ID,
+    crf_time_arrived,
+    crf_sleephours,
+    crf_sleepquality,
+    crf_babymeds,
+    crf_babysick,
+    mom_med,
+    mom_birth_control,
+    mom_hormonalmed,
+    mom_corticosteroid,
+    exclude_all_infant,
+    exclude_all_mom,
+    S1_fooderror,
+    S2_fooderror,
+    S3_fooderror,
+    S4_fooderror,
+    S5_fooderror,
+    s1_time:s5_time
+  ) 
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_double(),
+  saliva_analyzed_why = [31mcol_character()[39m,
+  crf_date = [31mcol_character()[39m,
+  crf_time_arrived = [34mcol_time(format = \"\")[39m,
+  crf_waketime = [31mcol_character()[39m,
+  crf_sleepquality = [31mcol_character()[39m,
+  crf_mealtime = [34mcol_time(format = \"\")[39m,
+  crf_mealwhat = [31mcol_character()[39m,
+  crf_babymed_type = [31mcol_character()[39m,
+  crf_babsick_describe = [31mcol_character()[39m,
+  mom_med_type = [31mcol_character()[39m,
+  mom_periodstart = [31mcol_character()[39m,
+  exclude_all_infant_why = [31mcol_character()[39m,
+  exclude_all_mom_why = [31mcol_character()[39m,
+  saliva1_time = [34mcol_time(format = \"\")[39m,
+  saliva1_notes = [31mcol_character()[39m,
+  saliva2_time = [34mcol_time(format = \"\")[39m,
+  saliva2_notes = [31mcol_character()[39m,
+  saliva3_time = [34mcol_time(format = \"\")[39m,
+  saliva3_notes = [31mcol_character()[39m,
+  saliva4_time = [34mcol_time(format = \"\")[39m
+  # ... with 8 more columns
+)
+See spec(...) for full column specifications.
+"
+"0","```r
+## create wide-format version
+crf_lf <-
+  crf_wf %>% 
+  gather(sample, time, s2_time:s5_time) %>% 
+  mutate(
+    sample = str_extract(sample, pattern = \"\\d\")
+  )
+```"

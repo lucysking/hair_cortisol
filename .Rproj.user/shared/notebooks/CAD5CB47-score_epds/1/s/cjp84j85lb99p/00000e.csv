@@ -1,0 +1,15 @@
+"0","epds_lf %>% 
+  filter(timepoint == ""T3"") %>% 
+  select(epds_1:epds_10) %>% 
+  psych::alpha()
+"
+"1","
+Reliability analysis "
+"1"," "
+"1"," 
+"
+"1","Call: "
+"1","psych::alpha(x = .)
+"
+"1","
+ "

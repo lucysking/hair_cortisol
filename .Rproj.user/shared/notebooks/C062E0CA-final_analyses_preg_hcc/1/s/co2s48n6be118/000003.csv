@@ -1,0 +1,229 @@
+"0","```r
+#bmi
+hc_bmi <- lmer(hc_log ~ seg_week + bmi_preg + weeks_preg_cent + (seg_week|ID), data = hcc)
+summary(hc_bmi)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week + bmi_preg + weeks_preg_cent + (seg_week |      ID)
+   Data: hcc
+
+REML criterion at convergence: 266.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.9860 -0.3889  0.0445  0.4725  3.1592 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.6228605 1.27392       
+          seg_week    0.0009356 0.03059  -0.80
+ Residual             0.0846234 0.29090       
+Number of obs: 199, groups:  ID, 33
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       0.542382   0.659817  33.509328   0.822    0.417    
+seg_week          0.037243   0.006751  40.512921   5.517 2.18e-06 ***
+bmi_preg          0.002389   0.024043  27.530876   0.099    0.922    
+weeks_preg_cent  -0.050532   0.005045 167.158151 -10.016  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk bm_prg
+seg_week    -0.301              
+bmi_preg    -0.930  0.005       
+wks_prg_cnt  0.086 -0.374  0.008
+"
+"0","```r
+hc_bmiX <- lmer(hc_log ~ seg_week * bmi_preg + weeks_preg_cent + (seg_week|ID), data = hcc)
+summary(hc_bmiX)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week * bmi_preg + weeks_preg_cent + (seg_week |      ID)
+   Data: hcc
+
+REML criterion at convergence: 277.2
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.9805 -0.3979  0.0370  0.4578  3.1567 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr 
+ ID       (Intercept) 1.627105 1.27558       
+          seg_week    0.000937 0.03061  -0.80
+ Residual             0.084792 0.29119       
+Number of obs: 199, groups:  ID, 33
+
+Fixed effects:
+                    Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)        -0.255389   1.056576  29.973290  -0.242   0.8106    
+seg_week            0.063189   0.027605  24.944872   2.289   0.0308 *  
+bmi_preg            0.033546   0.040204  29.555300   0.834   0.4107    
+weeks_preg_cent    -0.050416   0.005047 166.529318  -9.990   <2e-16 ***
+seg_week:bmi_preg  -0.001015   0.001047  24.225668  -0.969   0.3420    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk bm_prg wks_p_
+seg_week    -0.805                     
+bmi_preg    -0.973  0.780              
+wks_prg_cnt  0.040 -0.075  0.018       
+sg_wk:bm_pr  0.783 -0.970 -0.804 -0.017
+"
+"0","```r
+#smoking
+hc_smoking <- lmer(hc_log ~ seg_week_cent + smoking_prenatal + weeks_preg_cent + (seg_week_cent|ID), data = hcc)
+summary(hc_smoking)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week_cent + smoking_prenatal + weeks_preg_cent +      (seg_week_cent | ID)
+   Data: hcc
+
+REML criterion at convergence: 465.1
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.8428 -0.4037  0.0586  0.4153  2.6733 
+
+Random effects:
+ Groups   Name          Variance Std.Dev. Corr 
+ ID       (Intercept)   0.714221 0.84512       
+          seg_week_cent 0.001035 0.03216  -0.61
+ Residual               0.142975 0.37812       
+Number of obs: 283, groups:  ID, 45
+
+Fixed effects:
+                   Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)        1.369569   0.132899  42.965597  10.305 3.47e-13 ***
+seg_week_cent      0.036889   0.006604  70.137674   5.586 4.13e-07 ***
+smoking_prenatal   1.879771   0.494577  49.055641   3.801 0.000399 ***
+weeks_preg_cent   -0.032416   0.005021 239.015090  -6.456 5.94e-10 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) sg_wk_ smkng_
+seg_wek_cnt -0.433              
+smkng_prntl -0.224  0.010       
+wks_prg_cnt  0.005 -0.458  0.053
+"
+"0","```r
+hc_smokingX <- lmer(hc_log ~ seg_week_cent * smoking_prenatal + weeks_preg_cent + (seg_week_cent|ID), data = hcc)
+summary(hc_smokingX)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week_cent * smoking_prenatal + weeks_preg_cent +      (seg_week_cent | ID)
+   Data: hcc
+
+REML criterion at convergence: 469.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.8443 -0.4202  0.0504  0.4221  2.6659 
+
+Random effects:
+ Groups   Name          Variance Std.Dev. Corr 
+ ID       (Intercept)   0.704338 0.83925       
+          seg_week_cent 0.001047 0.03236  -0.62
+ Residual               0.143492 0.37880       
+Number of obs: 283, groups:  ID, 45
+
+Fixed effects:
+                                 Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)                      1.386555   0.133080  41.616925  10.419 3.63e-13 ***
+seg_week_cent                    0.035326   0.006816  67.603694   5.183 2.15e-06 ***
+smoking_prenatal                 1.697823   0.526437  45.077758   3.225  0.00235 ** 
+weeks_preg_cent                 -0.032276   0.005023 238.279901  -6.425 7.09e-10 ***
+seg_week_cent:smoking_prenatal   0.024160   0.024191  50.033767   0.999  0.32273    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) sg_wk_ smkng_ wks_p_
+seg_wek_cnt -0.456                     
+smkng_prntl -0.253  0.095              
+wks_prg_cnt  0.006 -0.449  0.044       
+sg_wk_cnt:_  0.128 -0.231 -0.369  0.014
+"
+"0","```r
+#alcohol 
+hc_alcohol <- lmer(hc_log ~ seg_week_cent + smoking_prenatal + alcohol_prenatal + weeks_preg_cent + (seg_week_cent|ID), data = hcc)
+summary(hc_alcohol)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week_cent + smoking_prenatal + alcohol_prenatal +      weeks_preg_cent + (seg_week_cent | ID)
+   Data: hcc
+
+REML criterion at convergence: 460.5
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.8395 -0.4160  0.0408  0.4127  2.6904 
+
+Random effects:
+ Groups   Name          Variance Std.Dev. Corr 
+ ID       (Intercept)   0.624491 0.79025       
+          seg_week_cent 0.001044 0.03231  -0.55
+ Residual               0.142090 0.37695       
+Number of obs: 283, groups:  ID, 45
+
+Fixed effects:
+                   Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)        1.867452   0.240269  42.691444   7.772 1.05e-09 ***
+seg_week_cent      0.036810   0.006611  69.885885   5.568 4.46e-07 ***
+smoking_prenatal   1.695847   0.478609  51.005234   3.543 0.000856 ***
+alcohol_prenatal  -0.628927   0.260491  38.085980  -2.414 0.020673 *  
+weeks_preg_cent   -0.032788   0.005033 239.738014  -6.515 4.24e-10 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) sg_wk_ smkng_ alchl_
+seg_wek_cnt -0.214                     
+smkng_prntl -0.230  0.011              
+alchl_prntl -0.854  0.007  0.131       
+wks_prg_cnt -0.028 -0.455  0.059  0.037
+"
+"0","```r
+hc_alcoholX <- lmer(hc_log ~ seg_week_cent * alcohol_prenatal + smoking_prenatal + weeks_preg_cent + (seg_week_cent|ID), data = hcc)
+summary(hc_alcoholX)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_log ~ seg_week_cent * alcohol_prenatal + smoking_prenatal +      weeks_preg_cent + (seg_week_cent | ID)
+   Data: hcc
+
+REML criterion at convergence: 466.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.8232 -0.4121  0.0437  0.4171  2.6866 
+
+Random effects:
+ Groups   Name          Variance Std.Dev. Corr 
+ ID       (Intercept)   0.624572 0.79030       
+          seg_week_cent 0.001042 0.03229  -0.57
+ Residual               0.142552 0.37756       
+Number of obs: 283, groups:  ID, 45
+
+Fixed effects:
+                                 Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)                      1.968374   0.262441  41.635665   7.500 2.98e-09 ***
+seg_week_cent                    0.026079   0.012796  45.618549   2.038 0.047371 *  
+alcohol_prenatal                -0.758755   0.293578  41.247015  -2.585 0.013387 *  
+smoking_prenatal                 1.731006   0.476884  51.087539   3.630 0.000656 ***
+weeks_preg_cent                 -0.032558   0.005033 238.896938  -6.469 5.54e-10 ***
+seg_week_cent:alcohol_prenatal   0.013783   0.014052  39.811348   0.981 0.332575    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) sg_wk_ alchl_ smkng_ wks_p_
+seg_wek_cnt -0.458                            
+alchl_prntl -0.880  0.409                     
+smkng_prntl -0.190 -0.036  0.094              
+wks_prg_cnt -0.011 -0.267  0.016  0.061       
+sg_wk_cnt:_  0.414 -0.856 -0.474  0.048  0.036
+"

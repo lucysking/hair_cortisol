@@ -1,0 +1,38 @@
+"0","```r
+cort_wf <- 
+  cort_wf %>% 
+  mutate(
+    auc_g_B = calculate_auc_g(
+      cort_mean_B_2,
+      cort_mean_B_3,
+      cort_mean_B_4,
+      cort_mean_B_5,
+      time_3,
+      time_4,
+      time_5
+    ),
+    auc_i_B = calculate_auc_i(
+      auc_g_B,
+      cort_mean_B_2,
+      time_3,
+      time_4,
+      time_5
+    ),
+    auc_g_M = calculate_auc_g(
+      cort_mean_M_2,
+      cort_mean_M_3,
+      cort_mean_M_4,
+      cort_mean_M_5,
+      time_3,
+      time_4,
+      time_5
+    ),
+    auc_i_M = calculate_auc_i(
+      auc_g_M,
+      cort_mean_M_2,
+      time_3,
+      time_4,
+      time_5
+    )
+  )
+```"

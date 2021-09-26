@@ -1,0 +1,32 @@
+"0","do  %>% "
+"0","  select("
+"0","    proximal_log:distal_log"
+"0","  ) %>% "
+"0","  gather("
+"0","    sample,"
+"0","    value,"
+"0","    proximal_log:distal_log"
+"0","  ) %>% "
+"0","  ggplot(aes(sample, log(value))) +"
+"0","  geom_boxplot() +"
+"0","  geom_point(alpha = 1/2) +"
+"0","  theme_hcc +"
+"0","  labs("
+"0","    y = ""log(HCC) pg/mg"","
+"0","    x = ""Sample type"""
+"0","  )"
+"2","Warning in log(value) :"
+"2"," NaNs produced
+"
+"2","Warning in log(value) :"
+"2"," NaNs produced
+"
+"2","Warning in log(value) :"
+"2"," NaNs produced
+"
+"2","Warning:"
+"2"," Removed 8 rows containing non-finite values (stat_boxplot).
+"
+"2","Warning:"
+"2"," Removed 8 rows containing missing values (geom_point).
+"

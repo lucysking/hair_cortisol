@@ -1,0 +1,10 @@
+"0","```r
+cort_lf <-
+  cort_lf %>% 
+  mutate(
+    s1_cort_B_log = log(s1_cort_mean_B),
+    s1_cort_M_log = log(s1_cort_mean_M),
+    cort_B_log = log(cort_mean_B),
+    cort_M_log = log(cort_mean_M)
+  )
+```"

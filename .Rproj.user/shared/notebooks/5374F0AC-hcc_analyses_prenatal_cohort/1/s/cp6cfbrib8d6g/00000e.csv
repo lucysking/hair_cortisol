@@ -1,0 +1,11 @@
+"0","do  %>% "
+"0","  ggplot(aes(log(proximal), log(distal))) +"
+"0","  geom_point(size = 4) +"
+"0","  geom_smooth(method = ""lm"", size = 3) +"
+"0","  theme_hcc +"
+"0","  labs("
+"0","    x = ""log(HCC) in proximal hair\n(0-1cm from scalp)"","
+"0","    y = ""log(HCC) in distal hair\n(3-5cm from scalp)"""
+"0","  )"
+"2","`geom_smooth()` using formula 'y ~ x'
+"

@@ -1,0 +1,9 @@
+"0","hc <-"
+"0","  hc %>% "
+"0","  select("
+"0","    -dyad"
+"0","  )"
+"2","Error: Can't subset columns that don't exist.
+[31mx[39m The column `dyad` doesn't exist.
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"

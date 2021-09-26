@@ -1,0 +1,42 @@
+"0","```r
+cort_lf <-
+  read_csv(cort_lf_file) %>% 
+  mutate(
+    time_hr = time / 60
+  ) %>% 
+  left_join(read_csv(demo_file), by = \"ID\")
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_double(),
+  cort_assay_error_B = [31mcol_character()[39m,
+  cort_assay_error_M = [31mcol_character()[39m
+)
+See spec(...) for full column specifications.
+Parsed with column specification:
+cols(
+  .default = col_double(),
+  due_date = [34mcol_datetime(format = \"\")[39m,
+  momrace_describe = [31mcol_character()[39m,
+  educ_describe = [33mcol_logical()[39m,
+  employment_explain = [31mcol_character()[39m,
+  mom_pob = [31mcol_character()[39m,
+  mom_native_lang = [31mcol_character()[39m,
+  primarylang = [31mcol_character()[39m,
+  secondlang_type = [31mcol_character()[39m,
+  marital_explain = [31mcol_character()[39m,
+  partner_educ_describe = [33mcol_logical()[39m,
+  partner_employ_describe = [33mcol_logical()[39m,
+  partner_pob = [31mcol_character()[39m,
+  ppl_in_home_describe = [31mcol_character()[39m,
+  first_childage = [31mcol_character()[39m,
+  second_childage = [31mcol_character()[39m,
+  third_childage = [31mcol_character()[39m,
+  fourth_childage = [33mcol_logical()[39m,
+  fourth_childsex = [33mcol_logical()[39m,
+  fifth_childage = [33mcol_logical()[39m,
+  fifth_childsex = [33mcol_logical()[39m
+  # ... with 20 more columns
+)
+See spec(...) for full column specifications.
+"

@@ -1,0 +1,25 @@
+"0","```r
+cort_lf <- 
+  cort_lf %>% 
+  mutate(ID = as.numeric(ID)) %>% 
+  left_join(crf_lf, by = c(\"ID\", \"sample\")) %>% 
+  mutate(
+    # if ate <20 minute prior to sample, remove value (convert to NA)
+    cort_mean_B = case_when(
+      sample == 2 & S2_fooderror == 1 ~ NA_real_,
+      sample == 3 & S3_fooderror == 1 ~ NA_real_,
+      sample == 4 & S4_fooderror == 1 ~ NA_real_,
+      sample == 5 & S5_fooderror == 1 ~ NA_real_,
+      TRUE ~ cort_mean_B
+    ),
+    cort_mean_B = if_else(
+      exclude_all_infant == 1,
+      NA_real_, cort_mean_B
+    ),
+    cort_mean_M = if_else(
+      exclude_all_mom == 1,
+      NA_real_, cort_mean_M
+    )
+  ) %>% 
+  ungroup()
+```"

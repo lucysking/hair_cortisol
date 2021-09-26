@@ -1,0 +1,1242 @@
+---
+title: ""
+author: "Lucy King"
+date: "4/17/2020"
+output: html_document
+---
+
+# Environment
+```{r}
+library(tidyverse)
+library(janitor)
+library(lme4)
+library(ggsci)
+library(ggpubr)
+library(lmerTest)
+library(performance)
+library(effectsize)
+library(parameters)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+source("winsorize.R")
+
+# Files
+home <- "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/"
+
+hcc_data_file <- paste0(home, "hair_cortisol/hcc_mom_infant_cleaned_all.csv")
+demo_file <- paste0(home, "demographics/demo_longitudinal_cleaned_final.csv")
+prams_file <- paste0(home, "PRAMS/prams_alldata_cleaned.csv")
+cesd_file <- paste0(home, "CESD/cesd_wf_20201001.csv")
+crisys_file <- paste0(home, "CRISYS/crisys_scored_wf_complete.csv")
+
+source("R_rainclouds.R")
+
+theme_hcc <-
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16),
+    legend.position = "bottom"
+  )
+
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+options(scipen = 999)
+
+```
+
+# Read in data
+```{r}
+d <-
+  read_csv(hcc_data_file) %>% 
+  #retain only participants from prenatal cohort
+  filter(ID >= 1000) %>% 
+  left_join(
+    read_csv(demo_file) %>% 
+      select(
+        ID,
+        education_t1,
+        education_t1_txt,
+        mom_race,
+        mom_latinx,
+        annual_income_t1,
+        annual_income_t1_txt,
+        mom_age_t1,
+        income_needs_t1,
+        infant_age_t2 = age_scan_t2,
+        infant_age_t3 = age_scan_t3
+      ),
+    by = "ID"
+  ) %>% 
+  left_join(
+    read_csv(prams_file) %>% 
+      select(
+        ID,
+        preg_previous,
+        prev_preg_total,
+        preg_weight_chg,
+        labor_status,
+        labor_mode,
+        mom_preg_bmi,
+        mom_newborn_bmi,
+        preg_weight_chg,
+        preg_weight_gain,
+        preg_weight_loss,
+        n_prenatal_cigarettes,
+        n_newborn_cigarettes,
+        n_prenatal_drinks,
+        n_newborn_drinks,
+        birth_weight_total_lbs
+      ),
+    by = "ID"
+  )  %>% 
+  left_join(
+    read_csv(cesd_file) %>% 
+      dplyr::select(
+        ID,
+        cesd_t1,
+        cesd_t2,
+        cesd_t3
+      ), 
+    by = "ID"
+  ) %>% 
+  left_join(
+    read_csv(crisys_file) %>% 
+      dplyr::select(
+        ID,
+        crisys_total_T1,
+        crisys_total_T2,
+        crisys_total_T3
+      ), 
+    by = "ID"
+  ) %>% 
+  mutate(
+    # recale segment so bottom is 0
+    segment = recode(
+      segment,
+      "1" = 0,
+      "2" = 1,
+      "3" = 2, 
+      "4" = 3,
+      "5" = 4
+    ),
+    season = as.factor(season),
+    hair_chemexp_past5mo = factor(hair_chemexp_past5mo),
+    phase = factor(
+      phase,
+      levels = c(
+        "1st trimester",
+        "2nd trimester",
+        "3rd trimester",
+        "3mo. postpartum",
+        "6mo. postpartum"
+      ),
+      labels = c(
+        "1st trimester",
+        "2nd trimester",
+        "3rd trimester",
+        "3 mo. postpartum",
+        "6 mo. postpartum"
+      )
+    ),
+    cesd = case_when(
+      timepoint == "T1" ~ cesd_t1,
+      timepoint == "T2" ~ cesd_t2,
+      timepoint == "T3" ~ cesd_t3
+    ),
+    crisys = case_when(
+      timepoint == "T1" ~ crisys_total_T1,
+      timepoint == "T2" ~ crisys_total_T2,
+      timepoint == "T3" ~ crisys_total_T3,
+    )
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    # mean cesd for each participant across timepoints
+    cesd_mu = mean(cesd, na.rm = TRUE), 
+     # person-mean-centered cesd (deviations from mean)
+    cesd_pc = if_else(
+      !is.na(cesd), cesd - cesd_mu, NA_real_
+    ),
+    crisys_mu = mean(crisys, na.rm = TRUE),
+    crisys_pc = if_else(
+      !is.na(crisys), crisys - crisys_mu, NA_real_
+    )
+  ) %>% 
+  ungroup()
+```
+
+# Descriptive statistics
+
+
+## Total number of participants at each time point, prior to removing observations contemporaneous with corticosteroid use
+```{r}
+d %>% 
+  filter(!is.na(hcc_log_m)) %>% 
+  distinct(ID, timepoint) %>% 
+  count(timepoint)
+```
+
+
+## Remove maternal observations contemporaneous with corticosteroid use
+Four participants did not provide information about recent corticosteroid use
+```{r}
+# number of participants
+d %>% 
+  distinct(ID, timepoint, steroid_recent) %>% 
+  count(timepoint, steroid_recent)
+
+# number of observations
+d %>% 
+  count(timepoint, steroid_recent)
+```
+```{r}
+d <-
+  d %>% 
+  mutate(
+    hcc_m = case_when(
+      steroid_recent == 1 ~ NA_real_, 
+      is.na(steroid_recent) ~ hcc_m,
+      steroid_recent == 0 ~ hcc_m, 
+    ),
+    hcc_log_m = case_when(
+      steroid_recent == 1 ~ NA_real_, 
+      is.na(steroid_recent) ~ hcc_log_m,
+      steroid_recent == 0 ~ hcc_log_m, 
+    )
+  ) %>% 
+  filter(!is.na(hcc_log_m))
+```
+
+
+## Final total number of participants and observations
+
+### N
+```{r}
+d %>% 
+  distinct(ID) %>% 
+  count()
+```
+ 
+### n 
+```{r}
+d %>% 
+  count()
+```
+ 
+### N by timepoint
+```{r}
+d %>% 
+  distinct(ID, timepoint) %>% 
+  count(timepoint)
+```
+
+### n by timepoint
+```{r}
+d %>% 
+  count(timepoint)
+```
+
+### N across timpoints
+```{r}
+d %>% 
+  distinct(ID, timepoint, hcc_log_m) %>% 
+  mutate(
+    hcc = !is.na(hcc_log_m)
+  ) %>% 
+  select(-hcc_log_m) %>% 
+  distinct(ID, timepoint, hcc) %>% 
+  spread(timepoint, hcc) %>% 
+  count(T1, T2, T3)
+```
+### by phase
+```{r}
+d %>% 
+  distinct(ID, phase) %>% 
+  count(phase)
+```
+
+```{r}
+d %>% 
+  filter(!is.na(hcc_log_m)) %>% 
+  distinct(ID, phase, hcc_log_m) %>% 
+  mutate(
+    hcc = !is.na(hcc_log_m)
+  ) %>% 
+  select(-hcc_log_m) %>% 
+  distinct(ID, phase, hcc) %>% 
+  spread(phase, hcc) 
+```
+
+```{r}
+d %>% 
+  count(phase)
+```
+## Distributions
+
+### Weeks since conception
+```{r}
+d %>% 
+  ggplot(aes(seg_week, fill = timepoint)) +
+  geom_density(alpha = 1/2) +
+  theme_hcc +
+  scale_x_continuous(breaks = seq.int(0, 65, 10)) +
+  scale_fill_manual(values = cbbPalette) +
+  theme(
+    legend.position = "right"
+  ) +
+  labs(
+    fill = "Assessment\ntimepoint",
+    x = "Weeks since conception of fetus",
+    y = "Density of HCC observations"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_timepoint_density.png",
+  width = 9,
+  height = 7
+)
+```
+
+### HCC in each phase
+
+```{r}
+d %>% 
+  ggplot(aes(fct_rev(phase), hcc_log_m)) +
+  geom_flat_violin(
+    aes(color = fct_rev(phase), fill = fct_rev(phase)),
+    position = position_nudge(x = .25, y = 0),
+    adjust = 2,
+    trim = TRUE
+  ) +
+  geom_point(
+    aes(color = fct_rev(phase), fill = fct_rev(phase)),
+    position = position_jitter(width = .15),
+    size = 1
+  ) +
+  geom_boxplot(
+    aes(x = as.numeric(fct_rev(phase)) + .25, y = hcc_log_m, group = fct_rev(phase)),
+    color = "black",
+    alpha = 1/3,
+    width = .1,
+    outlier.shape = NA
+  ) +
+  scale_y_continuous(breaks = seq.int(-2, 5, 1)) +
+  scale_fill_viridis_d() +
+  scale_color_viridis_d() +
+  theme_hcc +
+  theme(
+    legend.position = "none",
+    plot.caption = element_text(hjust = .5, size = 15)
+  ) +
+  labs(
+    x = NULL,
+    y = "log(HCC) pg/mg"
+  ) +
+  coord_flip()
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_rain_clouds_phase.png",
+  width = 8,
+  height = 7
+)
+```
+
+### CES-D scores at each timepoint
+
+```{r}
+d %>% 
+  ggplot(aes(cesd)) +
+  geom_histogram(binwidth = 5) +
+  theme_hcc +
+  labs(
+    fill = "Assessment\ntimepoint",
+    x = "CES-D Score"
+  ) +
+  facet_grid(.~timepoint)
+```
+### CRISYS scores at each timepoint
+
+```{r}
+d %>% 
+  ggplot(aes(crisys)) +
+  geom_histogram(binwidth = 2) +
+  theme_hcc +
+  labs(
+    fill = "Assessment\ntimepoint",
+    x = "CRISYS Score"
+  ) +
+  facet_grid(.~timepoint)
+```
+## Internal consistency of CESD and CRISYS
+```{r}
+r <-
+  read_csv(cesd_file) %>% 
+  left_join(read_csv(crisys_file), by = "ID")
+```
+### CESD
+```{r}
+r %>% 
+  dplyr::select(
+    contains("cesd")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T1"),
+    -cesd_t1
+  ) %>% 
+  psych::alpha()
+
+r %>% 
+  dplyr::select(
+    contains("cesd")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T2"),
+    -cesd_t2
+  ) %>% 
+  psych::alpha()
+
+r %>% 
+  dplyr::select(
+    contains("cesd")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T3"),
+    -cesd_t2
+  ) %>% 
+  psych::alpha()
+```
+
+### CESD
+```{r}
+r %>% 
+  dplyr::select(
+    contains("crisys")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T1"),
+    -crisys_total_T1:-crisys_ses_win_T1,
+    # removing items below due to high missingness / 0 variance
+    -crisys_69_T1,
+    -crisys_70_T1,
+    -crisys_71_T1
+  ) %>% 
+  psych::alpha()
+
+r %>% 
+  dplyr::select(
+    contains("crisys")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T2"),
+    -crisys_total_T2:-crisys_ses_win_T2,
+    -crisys_69_T2,
+    -crisys_70_T2,
+    -crisys_71_T2
+  ) %>% 
+  psych::alpha()
+
+r %>% 
+  dplyr::select(
+    contains("crisys")
+  ) %>% 
+  dplyr::select(
+    ends_with("_T3"),
+    -crisys_total_T3:-crisys_ses_win_T3,
+    -crisys_20_T3,
+    -crisys_47_T3,
+    -crisys_68_T3,
+    -crisys_69_T3,
+    -crisys_70_T3,
+    -crisys_71_T3
+  ) %>% 
+  psych::alpha()
+
+```
+
+## Demographics, means, SDs, ranges
+
+### Age
+```{r}
+d %>% 
+  summarise_at(
+    vars(
+      mom_age_t1, 
+      weeks_collect_t1, 
+      weeks_collect_t2,
+      weeks_collect_t3, 
+      infant_age_t2,
+      infant_age_t3,
+      gestational_weeks_birth
+    ),
+    funs(mean, sd, min, max), na.rm  = TRUE
+  )
+```
+
+### HCC
+```{r}
+d %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(hcc_m),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+d %>% 
+  group_by(phase) %>% 
+  summarise_at(
+    vars(hcc_m),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+d %>% 
+  group_by(phase) %>% 
+  summarise_at(
+    vars(hcc_log_m),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+### Weeks since conception and since birth
+```{r}
+d %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(seg_week),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+d %>% 
+  group_by(phase) %>% 
+  summarise_at(
+    vars(seg_week),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+d %>% 
+  group_by(phase) %>% 
+  summarise_at(
+    vars(seg_week_post),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+
+### Hair treatments, hair washing
+```{r}
+d %>% 
+  distinct(ID, timepoint, hair_chemexp_past5mo) %>% 
+  count(timepoint, hair_chemexp_past5mo)
+
+d %>% 
+  distinct(ID, timepoint, hair_wash_freq) %>% 
+  count(timepoint, hair_wash_freq)
+
+d %>% 
+  distinct(ID, hair_wash_freq_mean) %>% 
+  count(is.na(hair_wash_freq_mean))
+  
+d %>% 
+  summarise_at(
+    vars(hair_wash_freq_mean),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+
+### CES-D scores
+```{r}
+d %>% 
+  distinct(ID, timepoint, cesd) %>% 
+  count(timepoint, !is.na(cesd))
+```
+
+```{r}
+d %>% 
+  distinct(ID, timepoint, cesd) %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(cesd),
+    funs(mean, sd, min, max)
+  )
+```
+
+```{r}
+d %>% 
+  distinct(ID, timepoint, cesd) %>% 
+  count(timepoint, cesd >=16)
+```
+
+### CRISYS scores
+```{r}
+d %>% 
+  distinct(ID, timepoint, crisys) %>% 
+  count(timepoint, !is.na(crisys))
+```
+
+```{r}
+d %>% 
+  distinct(ID, timepoint, crisys) %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(crisys),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+### Race/ethnicity
+```{r}
+d %>% 
+  distinct(ID, mom_race) %>% 
+  count(mom_race)
+
+d %>% 
+  distinct(ID, mom_latinx) %>% 
+  count(mom_latinx)
+```
+
+
+### Income 
+```{r}
+d %>% 
+  distinct(ID, annual_income_t1_txt) %>% 
+  count(annual_income_t1_txt)
+
+```
+# Missing data analyses
+```{r}
+dm <-
+  d %>% 
+  dplyr::select(
+    ID,
+    timepoint,
+    mom_age_t1,
+    gestational_weeks_birth,
+    cesd_t1:cesd_t3,
+    crisys_total_T1:crisys_total_T3
+  ) %>% 
+  distinct(ID, timepoint, .keep_all = TRUE) %>% 
+  mutate(
+    T2_complete = if_else(timepoint == "T2", TRUE, FALSE),
+    T3_complete = if_else(timepoint == "T3", TRUE, FALSE)
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    T2_complete = sum(T2_complete),
+    T3_complete = sum(T3_complete)
+  ) %>% 
+  ungroup() %>% 
+  distinct(ID, .keep_all = TRUE) 
+```
+
+```{r}
+t.test(dm$mom_age_t1 ~ dm$T2_complete)
+t.test(dm$gestational_weeks_birth ~ dm$T2_complete)
+t.test(dm$cesd_t1 ~ dm$T2_complete)
+t.test(dm$cesd_t2 ~ dm$T2_complete)
+t.test(dm$cesd_t3 ~ dm$T2_complete)
+t.test(dm$crisys_total_T1 ~ dm$T2_complete)
+t.test(dm$crisys_total_T2 ~ dm$T2_complete)
+t.test(dm$crisys_total_T3 ~ dm$T2_complete)
+```
+
+```{r}
+t.test(dm$mom_age_t1 ~ dm$T3_complete)
+t.test(dm$gestational_weeks_birth ~ dm$T3_complete)
+t.test(dm$cesd_t1 ~ dm$T3_complete)
+t.test(dm$cesd_t2 ~ dm$T3_complete)
+t.test(dm$cesd_t3 ~ dm$T3_complete)
+t.test(dm$crisys_total_T1 ~ dm$T3_complete)
+t.test(dm$crisys_total_T2 ~ dm$T3_complete)
+t.test(dm$crisys_total_T3 ~ dm$T3_complete)
+```
+
+# Results
+
+## Reliability of segments 4- and 5-cm distal from scalp
+
+```{r}
+do5_T1T2 <-
+  d %>% 
+  select(
+    ID, 
+    timepoint,
+    hcc_m,
+    segment,
+    seg_week
+  ) %>% 
+  filter(
+    (segment == 0 & timepoint == "T1") |
+    (segment == 4 & timepoint == "T2") 
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    n = n()
+  ) %>% 
+  filter(n == 2) %>% 
+  arrange(ID, timepoint) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = seg_week - lag(seg_week)
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = sum(seg_week_diff, na.rm = TRUE)
+  ) %>% 
+  filter(seg_week_diff < 4 & seg_week_diff >= -4) %>% 
+  select(ID, timepoint, hcc_m) %>% 
+  spread(timepoint, hcc_m) %>% 
+  rename(
+    proximal = T1,
+    distal = T2
+  ) %>% 
+  ungroup()
+```
+
+```{r}
+do5_T2T3 <-
+  d %>% 
+  select(
+    ID, 
+    timepoint,
+    hcc_m,
+    segment,
+    seg_week
+  ) %>% 
+  filter(
+    (segment == 0 & timepoint == "T2") |
+    (segment == 4 & timepoint == "T3") 
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    n = n()
+  ) %>% 
+  filter(n == 2) %>% 
+  arrange(ID, timepoint) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = seg_week - lag(seg_week)
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = sum(seg_week_diff, na.rm = TRUE)
+  ) %>% 
+  filter(seg_week_diff < 4 & seg_week_diff >= -4) %>% 
+  select(ID, timepoint, hcc_m) %>% 
+  spread(timepoint, hcc_m) %>% 
+  rename(
+    proximal = T2,
+    distal = T3
+  ) %>% 
+  ungroup()
+```
+
+```{r}
+do4_T1T2 <-
+  d %>% 
+  select(
+    ID, 
+    timepoint,
+    hcc_m,
+    segment,
+    seg_week
+  ) %>% 
+  filter(
+    (segment == 0 & timepoint == "T1") |
+    (segment == 3 & timepoint == "T2") 
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    n = n()
+  ) %>% 
+  filter(n == 2) %>% 
+  arrange(ID, timepoint) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = seg_week - lag(seg_week)
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    seg_week_diff = sum(seg_week_diff, na.rm = TRUE)
+  ) %>% 
+  filter(seg_week_diff < 3 & seg_week_diff >= -3) %>% 
+  select(ID, timepoint, hcc_m) %>% 
+  spread(timepoint, hcc_m) %>% 
+  rename(
+    proximal = T1,
+    distal = T2
+  ) %>% 
+  ungroup() 
+```
+
+There are no overlapping T2, T3 segments for 3-4cm from scalp.
+
+```{r}
+do <-
+  do5_T1T2 %>% 
+  bind_rows(do5_T2T3) %>% 
+  bind_rows(do4_T1T2) %>% 
+  mutate(
+    proximal_log = log(proximal),
+    distal_log = log(distal)
+  ) 
+
+do %>% 
+  count()
+
+do %>% 
+  distinct(ID) %>% 
+  count()
+```
+
+```{r}
+do %>% 
+  select(proximal, distal) %>% 
+  psych::ICC()
+
+cor.test(do$proximal, do$distal)
+t.test(do$proximal, do$distal, paired = TRUE)
+```
+```{r}
+do  %>% 
+  ggplot(aes(log(proximal), log(distal))) +
+  geom_point(size = 4) +
+  geom_smooth(method = "lm", size = 3) +
+  theme_hcc +
+  labs(
+    x = "log(HCC) in proximal hair\n(0-1cm from scalp)",
+    y = "log(HCC) in distal hair\n(3-5cm from scalp)"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_distal_validity.png",
+  width = 7,
+  height = 5
+)
+```
+```{r}
+do  %>% 
+  select(
+    proximal_log:distal_log
+  ) %>% 
+  gather(
+    sample,
+    value,
+    proximal_log:distal_log
+  ) %>% 
+  ggplot(aes(sample, log(value))) +
+  geom_boxplot() +
+  geom_point(alpha = 1/2) +
+  theme_hcc +
+  labs(
+    y = "log(HCC) pg/mg",
+    x = "Sample type"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_distal_validity_boxplot.png",
+  width = 7,
+  height = 5
+)
+```
+
+
+```{r}
+d3 <-
+  d %>% 
+  filter(segment < 4)
+
+d3 %>% 
+  distinct(ID, timepoint) %>% count(timepoint)
+```
+
+## Fit piecewise linear mixed model of HCC, covarying for segment as a random effect
+
+Piecewise model is centered at birth of infant (due date if birth date never provided)
+```{r}
+mlm1 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm1)
+mlm1_parameters <- model_parameters(mlm1)
+mlm1_parameters
+performance(mlm1)
+tab_model(mlm1)
+```
+
+## Visualize piecewise model
+
+### Extract predicted values and SEs
+
+```{r}
+# asymptotic covariance matrix (variances and covariances of fixed effects)
+acov_mlm1 <- vcov(mlm1) 
+
+pred_mlm1 <- expand.grid(
+  seg_week_cent_birth = seq(-40, 30, 1)
+) %>% 
+  mutate(
+    seg_week_preg = scale(
+      if_else(
+        seg_week_cent_birth <= 0, seg_week_cent_birth, 0
+      )
+    ),
+    seg_week_post = scale(
+      if_else(
+        seg_week_cent_birth > 0, seg_week_cent_birth, 0
+      )
+    )
+  ) 
+
+xmat_mlm1 <-
+  pred_mlm1 %>% 
+  mutate(
+    intercept = 1
+  ) %>% 
+  dplyr::select(
+    intercept,
+    seg_week_preg,
+    seg_week_post
+  ) %>% 
+  as.matrix()
+
+# predicted values
+fixed_mlm1 <- summary(mlm1)$coefficients[,"Estimate"] 
+
+pred_mlm1$fit <- 
+  xmat_mlm1 %*% fixed_mlm1
+
+# standard errors
+pred_mlm1$se <- 
+  xmat_mlm1 %*% acov_mlm1 %*% t(xmat_mlm1) %>% 
+  diag() %>% 
+  sqrt()
+
+# CIs
+pred_mlm1 <- 
+  pred_mlm1 %>% 
+  mutate(LL = fit - 2*se, UL = fit + 2*se)
+
+```
+### Plot fixed effects
+```{r}
+mean_gestation_birth <- format(round(mean(d$gestational_weeks_birth, na.rm = TRUE), 2), nsmall = 2)
+sd_gestation_birth <- format(round(sd(d$gestational_weeks_birth, na.rm = TRUE), 2), nsmall = 2)
+
+pred_mlm1 %>% 
+  ggplot(aes(seg_week_cent_birth, fit)) +
+  geom_ribbon(
+    aes(ymin = LL, ymax = UL),
+    fill = "grey80",
+    alpha = .6
+  ) +
+  geom_line(size = 2) +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dotted",
+    size = 1
+  ) +
+  annotate(
+    "text", 
+    x = 15, 
+    y = -.35,
+    size = 5,
+    colour = "grey45", 
+    label = paste0("Mean[SD] gestational \nweeks = ", mean_gestation_birth , "[", sd_gestation_birth, "]")
+  ) +
+  geom_curve(
+    aes(x = 11, y = -.5, xend = 0, yend = -.7), 
+    arrow = arrow(length = unit(0.07, "inches")), 
+    size = 0.2,
+    colour = "grey65", 
+    curvature = -.3
+  ) +
+  scale_y_continuous(breaks = seq.int(-1, 1, .25), limits = c(-1, 1)) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  theme_pubr() +
+  theme(
+    strip.text = element_text(size = 16),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.text.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "none"
+  ) +
+  labs(
+    x = "Weeks from childbirth",
+    y = "log(HCC) pg/mg"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_piecewise_average.png",
+  width = 6,
+  height = 5
+)
+```
+
+### Plot with raw data
+```{r}
+pred_mlm1 %>% 
+  ggplot(aes(seg_week_cent_birth, fit)) +
+  geom_ribbon(
+    aes(ymin = LL, ymax = UL),
+    fill = "grey80",
+    alpha = .6
+  ) +
+  geom_line(size = 2) +
+  geom_point(
+    data = d, 
+    aes( y= hcc_log_m),
+    size = .5, 
+    alpha = .3
+  ) +
+  geom_line(
+    data = d , 
+    aes(y = hcc_log_m, group = ID),
+    size=.2, 
+    alpha=.3
+  ) +
+  scale_y_continuous(breaks = seq.int(-2, 5, .5)) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  theme_pubr() +
+  theme(
+    strip.text = element_text(size = 16),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.text.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "none"
+  ) +
+  labs(
+    x = "Weeks from childbirth",
+    y = "log(HCC) pg/mg"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_piecewise_id.png",
+  width = 7,
+  height = 5
+)
+```
+
+## Examine effect of psychosocial adversity
+```{r}
+mlm2 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    scale(crisys_mu) +
+    scale(crisys_pc) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm2)
+mlm2_parameters <- model_parameters(mlm2)
+mlm2_parameters
+performance(mlm2)
+
+```
+
+## Visualize effect of psychosocial adversity
+
+### Extract predicted values and SEs
+
+```{r}
+# asymptotic covariance matrix (variances and covariances of fixed effects)
+acov_mlm2 <- vcov(mlm2) 
+
+pred_mlm2 <- expand.grid(
+  crisys_mu = 0,
+  crisys_pc = seq(-3, 3, 1)
+) %>% 
+  mutate(
+    seg_week_preg = 0,
+    seg_week_post = 0
+  ) 
+
+xmat_mlm2 <-
+  pred_mlm2 %>% 
+  mutate(
+    intercept = 1
+  ) %>% 
+  dplyr::select(
+    intercept,
+    seg_week_preg,
+    seg_week_post,
+    crisys_mu,
+    crisys_pc
+  ) %>% 
+  as.matrix()
+
+# predicted values
+fixed_mlm2 <- summary(mlm2)$coefficients[,"Estimate"]
+
+pred_mlm2$fit <- 
+  xmat_mlm2 %*% fixed_mlm2
+
+# standard errors
+pred_mlm2$se <- 
+  xmat_mlm2 %*% acov_mlm2 %*% t(xmat_mlm2) %>% 
+  diag() %>% 
+  sqrt()
+
+# CIs
+pred_mlm2 <- 
+  pred_mlm2 %>% 
+  mutate(LL = fit - 2*se, UL = fit + 2*se) 
+```
+
+### Plot fixed effect
+```{r}
+pred_mlm2 %>% 
+  ggplot(aes(crisys_pc, fit)) +
+  geom_ribbon(
+    aes(ymin = LL, ymax = UL),
+    fill = "grey80",
+    alpha = .6
+  ) +
+  geom_line(size = 2) +
+  scale_y_continuous(breaks = seq.int(-1, 1, .25), limits = c(-1, 1)) +
+  scale_x_continuous(breaks = seq.int(-3, 3, 1)) +
+  theme_pubr() +
+  theme(
+    strip.text = element_text(size = 16),
+    axis.title.y = element_text(size = 20, face = "bold"),
+    axis.title.x = element_text(size = 20, face = "bold"),
+    axis.text.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16),
+    legend.position = "none"
+  ) +
+  labs(
+    x = "Within-individual change\nin psychosocial adversity",
+    y = "log(HCC) pg/mg"
+  )
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_crisyspc.png",
+  width = 6,
+  height = 5
+)
+```
+
+
+## Examine effect of despressive symptoms
+```{r}
+mlm3 <- lmer(
+  hcc_log_m ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    scale(cesd_mu) +
+    scale(cesd_pc) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm3)
+mlm3_parameters <- model_parameters(mlm3)
+mlm3_parameters
+performance(mlm3)
+```
+
+
+## Examine covariates
+
+### Age
+```{r}
+mlm4 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    scale(mom_age_t1) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm4)
+mlm4_parameters <- model_parameters(mlm4)
+mlm4_parameters
+performance(mlm4)
+
+```
+
+
+### Season
+```{r}
+# Fall is baseline
+contrasts(d$season) = cbind(
+  "SPvF" = c(-1/4, 1-(1/4), -1/4, -1/4),
+  "SUvF" = c(-1/4, -1/4, 1-(1/4), -1/4),
+  "WvF" = c(-1/4, -1/4, -1/4, 1-(1/4))
+)
+
+mlm5_fall <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    season +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+anova(mlm5_fall)
+summary(mlm5_fall)
+mlm5_fall_parameters <- model_parameters(mlm5_fall)
+mlm5_fall_parameters
+performance(mlm5_fall)
+```
+
+### Estimated marginal means across seasons
+```{r}
+emmeans_season <- emmeans(mlm5_fall, specs = "season")
+emmeans_season
+```
+
+### Hair chemical exposure
+```{r}
+contrasts(d$hair_chemexp_past5mo) = c(-.5, .5)
+
+mlm6 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    hair_chemexp_past5mo +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm6)
+mlm6_summer_parameters <- model_parameters(mlm6)
+mlm6_summer_parameters
+```
+
+### Hair washing frequency
+```{r}
+mlm7 <- lmer(
+  scale(hcc_log_m)~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    scale(hair_wash_freq_mean) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d
+)
+
+summary(mlm7)
+mlm7_summer_parameters <- model_parameters(mlm7)
+mlm7_summer_parameters
+```
+
+
+

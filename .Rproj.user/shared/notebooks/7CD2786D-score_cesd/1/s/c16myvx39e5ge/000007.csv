@@ -1,0 +1,50 @@
+"0","cesd_wf <- 
+  cesd %>% 
+  dplyr::select(
+    ID,
+    redcap_event_name,
+    cesd_1:cesd_20,
+    cesd_total
+  ) %>% 
+  mutate(
+    redcap_event_name = recode(
+      redcap_event_name,
+      ""pregnancy_arm_1"" = ""T1"",
+      ""neonatal_arm_1"" = ""T2"",
+      ""sixmonth_arm_1"" = ""T3"",
+      ""eighteenmonth"" = ""T4""
+    )
+  ) %>% 
+  pivot_wider(
+   names_from = redcap_event_name,
+   values_from = cesd_1:cesd_total
+  ) %>% 
+  rename(
+    cesd_total_T1 = cesd_t1,
+    cesd_total_T2 = cesd_t2,
+    cesd_total_T3 = cesd_t3,
+    cesd_total_T4 = cesd_t4
+  ) %>% 
+  mutate(
+    cesd_t1_concern = if_else(
+      cesd_t1 >= 16,
+      ""clinical concern"", ""none""
+    ),
+    cesd_t2_concern = if_else(
+      cesd_t2 >= 16,
+      ""clinical concern"", ""none""
+    ),
+    cesd_t3_concern = if_else(
+      cesd_t3 >= 16,
+      ""clinical concern"", ""none""
+    ),
+    cesd_t4_concern = if_else(
+      cesd_t4 >= 16,
+      ""clinical concern"", ""none""
+    )
+  )
+"
+"2","Error: Can't rename columns that don't exist.
+[31mx[39m Column `cesd_t1` doesn't exist.
+[90mRun `rlang::last_error()` to see where the error occurred.[39m
+"

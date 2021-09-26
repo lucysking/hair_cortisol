@@ -1,0 +1,74 @@
+"0","```r
+hc_sens_dye <-
+  hcc %>% 
+  filter(hair_dye_preg == 0)
+hc_sens_steroid <-
+  hcc %>% 
+  filter(steroid == 0)
+hc_dye_sens <- lmer(hc_trimlog ~ seg_week + weeks_preg_cent + (seg_week|ID), data = hc_sens_dye)
+summary(hc_dye_sens)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + weeks_preg_cent + (seg_week | ID)
+   Data: hc_sens_dye
+
+REML criterion at convergence: 624.5
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.4605 -0.3768  0.0447  0.4312  2.6977 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.8737182 1.36884       
+          seg_week    0.0008026 0.02833  -0.75
+ Residual             0.2040191 0.45168       
+Number of obs: 315, groups:  ID, 53
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       1.087860   0.220625  65.767712   4.931 5.85e-06 ***
+seg_week          0.024610   0.006402  98.009711   3.844 0.000215 ***
+weeks_preg_cent  -0.019288   0.005826 262.223820  -3.311 0.001060 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk
+seg_week    -0.787       
+wks_prg_cnt  0.346 -0.518
+"
+"0","```r
+hc_steroid_sens <- lmer(hc_trimlog ~ seg_week + weeks_preg_cent + (seg_week|ID), data = hc_sens_steroid)
+summary(hc_steroid_sens)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + weeks_preg_cent + (seg_week | ID)
+   Data: hc_sens_steroid
+
+REML criterion at convergence: 670.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.5867 -0.3609  0.0395  0.3853  2.8487 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.7142402 1.30929       
+          seg_week    0.0009042 0.03007  -0.72
+ Residual             0.1909094 0.43693       
+Number of obs: 348, groups:  ID, 57
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       1.024332   0.203347  71.760559   5.037 3.39e-06 ***
+seg_week          0.025907   0.006161 100.989305   4.205 5.66e-05 ***
+weeks_preg_cent  -0.018949   0.005322 295.682759  -3.561 0.000431 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk
+seg_week    -0.780       
+wks_prg_cnt  0.356 -0.505
+"

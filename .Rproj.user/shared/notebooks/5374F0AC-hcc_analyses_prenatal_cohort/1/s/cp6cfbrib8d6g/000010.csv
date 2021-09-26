@@ -1,0 +1,7 @@
+"0","ggsave("
+"0","  ""~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_distal_validity.png"","
+"0","  width = 7,"
+"0","  height = 5"
+"0",")"
+"2","`geom_smooth()` using formula 'y ~ x'
+"

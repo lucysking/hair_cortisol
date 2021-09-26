@@ -1,0 +1,4 @@
+"0","```r
+cort_lf %>% 
+  count(!is.na(cort_B_winlog))
+```"

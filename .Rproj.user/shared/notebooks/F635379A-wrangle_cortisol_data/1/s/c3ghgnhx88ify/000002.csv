@@ -1,0 +1,11 @@
+"0","```r
+calculate_auc_i = function(
+  auc_g,
+  sample2,
+  t3,
+  t4,
+  t5
+) {
+  auc_g - (sample2 * ((t3) + (t4 - t3) + (t5 - t4)))
+}
+```"

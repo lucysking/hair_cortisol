@@ -1,0 +1,13 @@
+{
+    "path": "~/Desktop/BABIES/hair_cortisol",
+    "sortOrder": [
+        {
+            "columnIndex": 2,
+            "ascending": true
+        },
+        {
+            "columnIndex": 4,
+            "ascending": false
+        }
+    ]
+}

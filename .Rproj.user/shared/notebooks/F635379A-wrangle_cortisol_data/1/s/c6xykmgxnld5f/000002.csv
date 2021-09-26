@@ -1,0 +1,8 @@
+"0","```r
+cort_wf <-
+  cort_wf %>% 
+  mutate_at(
+    vars(auc_g_B, auc_g_M),
+    funs(\"log\" = log)
+  )
+```"

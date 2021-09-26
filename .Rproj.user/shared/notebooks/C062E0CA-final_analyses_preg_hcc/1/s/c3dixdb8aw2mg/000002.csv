@@ -1,0 +1,31 @@
+"0","```r
+hcc <-
+  hcc %>% 
+  left_join(
+    read_csv(delivery_questions_file),
+    by = \"ID\"
+  ) %>% 
+  mutate(
+    labor_mode = as.factor(
+      recode(
+        labor_mode,
+        \"1\" = \"vaginal/instrument\",
+        \"2\" = \"c-section\",
+        \"3\" = \"vaginal/instrument\"
+      )
+    )
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  ID = col_integer(),
+  preg_num_ch_ = col_integer(),
+  allchild_in_home_preg = col_integer(),
+  labor_mode = col_integer()
+)
+"
+"0","```r
+hcc %>% 
+  distinct(ID, labor_mode) %>% 
+  count(labor_mode)
+```"

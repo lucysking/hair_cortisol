@@ -1,0 +1,15 @@
+"0","```r
+calculate_auc_g = function(
+  sample2, 
+  sample3, 
+  sample4, 
+  sample5,
+  t3, 
+  t4, 
+  t5
+) {
+  (((sample3 + sample2) / 2) * (t3)) +
+    (((sample4 + sample3) / 2) * (t4 - t3)) +
+    (((sample5 + sample4) / 2 ) * (t5 - t4))
+}
+```"

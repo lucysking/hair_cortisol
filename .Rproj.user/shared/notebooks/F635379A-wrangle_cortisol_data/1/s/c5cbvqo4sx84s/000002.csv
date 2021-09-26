@@ -1,0 +1,22 @@
+"0","```r
+cort_wf <-
+  cort_wf %>% 
+  #winsorize auc_g
+  mutate_at(
+    vars(auc_g_B_log, auc_g_M_log),
+    funs(\"win\" = winsorize(., product = 2))
+  ) %>% 
+  #trim auc_i (values are so far out of range)
+  mutate(
+    auc_i_B_trim = if_else(
+      auc_i_B > mean(auc_i_B, na.rm = TRUE) + (2 * sd(auc_i_B, na.rm = TRUE)) | 
+        auc_i_B < mean(auc_i_B, na.rm = TRUE) - (2 * sd(auc_i_B, na.rm = TRUE)),
+      NA_real_, auc_i_B
+    ),
+    auc_i_M_trim = if_else(
+      auc_i_M > mean(auc_i_M, na.rm = TRUE) + (2 * sd(auc_i_M, na.rm = TRUE)) | 
+        auc_i_M < mean(auc_i_M, na.rm = TRUE) - (2 * sd(auc_i_M, na.rm = TRUE)),
+      NA_real_, auc_i_M
+    )
+  )
+```"

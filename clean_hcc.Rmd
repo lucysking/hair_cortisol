@@ -1,0 +1,514 @@
+---
+title: "Clean mother and infant hair cortisol data"
+author: "Lucy King"
+date: "4/15/2020"
+output: html_document
+---
+
+# Environment
+```{r}
+# Libraries
+library(tidyverse)
+library(corrr)
+library(lubridate)
+
+# Files
+home <- "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/"
+
+hcc_file <- paste0(home, "hair_cortisol/raw_data/hcc_mom_infant_final.csv")
+
+demo_lg_file <- paste0(home, "demographics/demo_longitudinal_cleaned_final.csv")
+
+demo_cs_file <- paste0(home, "demographics/demo_6mo_cleaned_final.csv")
+
+hc_questions_6mo_cs_file <- paste0(
+  home, "hair_cortisol/raw_data/hcc_questions_6mo_cs_cleaned.csv"
+)
+hc_questions_6mo_lg_file <- paste0(
+  home, "hair_cortisol/raw_data/hcc_questions_6mo_lg_cleaned.csv"
+)
+
+hc_questions_preg_nb_file <- paste0(
+  home, 
+  "hair_cortisol/raw_data/hcc_questions_preg_nb_cleaned.csv"
+)
+
+source("~/Desktop/BABIES/hair_cortisol/winsorize.R")
+
+
+theme_hcc <-
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16),
+    legend.position = "bottom"
+  )
+```
+
+# Read in data 
+
+```{r}
+demo <-
+  read_csv(demo_lg_file) %>% 
+  select(
+    ID,
+    due_date,
+    baby_dob,
+    visit_date_t1,
+    scan_date_t2,
+    behav_visit_date_t3
+  ) %>% 
+  # mutate(
+  #   #due_date = parse_date(due_date, "%m/%d/%y"),
+  #   #baby_dob = parse_date(baby_dob, "%m/%d/%y"),
+  #   visit_date_t1 = parse_date(visit_date_t1, "%m/%d/%y"),
+  #   behav_visit_date_t3 = parse_date(behav_visit_date_t3, "%m/%d/%y")
+  # ) %>% 
+  bind_rows(
+    read_csv(demo_cs_file) %>% 
+      filter(ID < 1000) %>% 
+      select(
+        ID,
+        due_date,
+        baby_dob,
+        behav_visit_date_t3 = behav_visit_date
+      ) 
+  ) %>% 
+  mutate(
+    # for those who did not scan but provided hair at T2, enter date of collection
+    scan_date_t2 = case_when(
+      ID == 1021 ~ date("2017-11-17"),
+      ID == 1032 ~ date("2017-12-21"),
+      ID == 1045 ~ date("2017-12-01"),
+      ID == 1048 ~ date("2018-03-12"),
+      ID == 1052 ~ date("2017-11-27"),
+      ID == 1059 ~ date("2018-01-28"),
+      ID == 1096 ~ date("2019-03-16"),
+      ID == 1121 ~ date("2019-07-08"),
+      TRUE ~ date(scan_date_t2)
+    ),
+    conception_date = due_date - weeks(40),
+    # gestational weeks at time of T1 hair collection 
+    weeks_collect_t1 = (conception_date %--% visit_date_t1) / weeks(1),
+    # gestational weeks at time of baby birth
+    gestational_weeks_birth = (conception_date %--% baby_dob) / weeks(1),
+    # postpartum weeks at time of T2 hair collection
+    postpartum_weeks_collect_t2 = (baby_dob %--% scan_date_t2) / weeks(1),
+    # gestational weeks at time of T2 hair collection
+    weeks_collect_t2 = (conception_date %--% scan_date_t2) / weeks(1),
+    # gestational weeks at time of T3 hair collection
+    weeks_collect_t3 = (conception_date %--% behav_visit_date_t3) / weeks(1),
+    # postpartum weeks at time of T3 hair collection
+     postpartum_weeks_collect_t3 = (baby_dob %--% behav_visit_date_t3) / weeks(1)
+  )
+```
+
+```{r}
+hc <-
+  read_csv(hcc_file) %>% 
+  left_join(demo, by = "ID")
+```
+
+
+```{r}
+q_preg <-
+  read_csv(hc_questions_preg_nb_file) %>% 
+  rename(ID = record_id) %>% 
+  mutate(
+    timepoint = if_else(
+      str_detect(redcap_event_name, "preg") == TRUE, "T1", "T2"
+    )
+  ) %>% 
+  select(
+    ID, 
+    timepoint,
+    steroid_recent = steroid_past3mo,
+    steroid_notes,
+    hair_chemexp_past5mo,
+    hair_wash_freq
+  )
+```
+
+```{r}
+q_6mo <-
+  read_csv(hc_questions_6mo_cs_file) %>% 
+  bind_rows(read_csv(hc_questions_6mo_lg_file)) %>% 
+  rename(
+    ID = record_id
+  ) %>% 
+  mutate(
+    timepoint = "T3"
+  ) %>% 
+  select(
+    ID,
+    timepoint,
+    steroid_recent = steroid_past3mo,
+    hair_chemexp_past5mo,
+    hair_wash_freq
+  )
+```
+
+```{r}
+hcc_q <-
+  q_preg %>% 
+  bind_rows(q_6mo)
+```
+
+```{r}
+getSeason <- function(input.date){
+  numeric.date <- 100*month(input.date)+day(input.date)
+  ## input Seasons upper limits in the form MMDD in the "break =" option:
+  cuts <- base::cut(numeric.date, breaks = c(0,319,0620,0921,1220,1231)) 
+  # rename the resulting groups (could've been done within cut(...levels=) if "Winter" wasn't double
+  levels(cuts) <- c("Winter","Spring","Summer","Fall","Winter")
+  return(cuts)
+}
+
+mean_gestionational_weeks_birth <- mean(hc$gestational_weeks_birth, na.rm = TRUE)
+
+hc <-
+  hc %>% 
+  left_join(hcc_q, by = c("ID", "timepoint")) %>% 
+  mutate(
+    seg_week = case_when(
+      dyad == "m" & timepoint == "T1" & segment == 1 ~ weeks_collect_t1,
+      dyad == "m" & timepoint == "T1" & segment == 2 ~ weeks_collect_t1 - 4,
+      dyad == "m" & timepoint == "T1" & segment == 3 ~ weeks_collect_t1 - 8,
+      dyad == "m" & timepoint == "T1" & segment == 4 ~ weeks_collect_t1 - 12,
+      dyad == "m" & timepoint == "T1" & segment == 5 ~ weeks_collect_t1 - 16,
+      dyad == "m" & timepoint == "T2" & segment == 1 ~ weeks_collect_t2,
+      dyad == "m" & timepoint == "T2" & segment == 2 ~ weeks_collect_t2 - 4,
+      dyad == "m" & timepoint == "T2" & segment == 3 ~ weeks_collect_t2 - 8,
+      dyad == "m" & timepoint == "T2" & segment == 4 ~ weeks_collect_t2 - 12,
+      dyad == "m" & timepoint == "T2" & segment == 5 ~ weeks_collect_t2 - 16,
+      dyad == "m" & timepoint == "T3" & segment == 1 ~ weeks_collect_t3,
+      dyad == "m" & timepoint == "T3" & segment == 2 ~ weeks_collect_t3 - 4,
+      dyad == "m" & timepoint == "T3" & segment == 3 ~ weeks_collect_t3 - 8,
+      dyad == "m" & timepoint == "T3" & segment == 4 ~ weeks_collect_t3 - 12,
+      dyad == "m" & timepoint == "T3" & segment == 5 ~ weeks_collect_t3 - 16
+    )
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    # recode hair washing frequency so higher scores = more frequent
+    hair_wash_freq = recode(
+      hair_wash_freq,
+      "1" = 4, # 1 = daily
+      "2" = 3, # 2 = every other day
+      "3" = 2, # 3 = once a week
+      "4" = 1 # 4 = < once a week
+    ),
+    hair_wash_freq_mean = mean(hair_wash_freq, na.rm = TRUE),
+    # season of collection
+    season = as.factor(
+      case_when(
+        timepoint == "T1" ~ getSeason(visit_date_t1),
+        timepoint == "T2" ~ getSeason(scan_date_t2),
+        timepoint == "T3" ~ getSeason(behav_visit_date_t3),
+      )
+    )
+  ) %>% 
+  ungroup()
+```
+
+# Separate and re-merge infant HCC
+```{r}
+hc_i <-
+  hc %>% 
+  filter(dyad == "i") %>% 
+  select(
+    ID, 
+    hcc_i = hcc
+  )
+
+hc <-
+  hc %>% 
+  filter(dyad != "i") %>% 
+  rename(
+    hcc_m = hcc
+  ) %>% 
+  # remove four observations measuring hair prior to conception
+  filter(seg_week > 0) %>% 
+  full_join(hc_i, by = "ID")
+
+```
+
+# Code phase variable
+```{r}
+hc <-
+  hc %>% 
+  mutate(
+    phase = case_when(
+      seg_week >= 0 & seg_week <= 12 ~ "1st trimester",
+      seg_week > 12 & seg_week <= 26 ~ "2nd trimester",
+      !is.na(gestational_weeks_birth) & seg_week > 26 & seg_week <= ceiling(gestational_weeks_birth) ~ "3rd trimester",
+      !is.na(gestational_weeks_birth) & seg_week > ceiling(gestational_weeks_birth) & seg_week <= 52 ~ "3mo. postpartum",
+      is.na(gestational_weeks_birth) & seg_week > 26 & seg_week <= ceiling(mean_gestionational_weeks_birth) ~ "3rd trimester",
+      is.na(gestational_weeks_birth) & seg_week > ceiling(mean_gestionational_weeks_birth) & seg_week <= 52 ~ "3mo. postpartum",
+      seg_week > 52 ~ "6mo. postpartum"
+    ),
+    phase = factor(
+      phase,
+      levels = c(
+        "1st trimester", 
+        "2nd trimester", 
+        "3rd trimester", 
+        "3mo. postpartum", 
+        "6mo. postpartum"
+      )
+    )
+  ) 
+```
+
+
+# Transform data
+
+## Visualize mother and infant distributions of HCC
+```{r}
+hc %>% 
+  ggplot(aes(hcc_m)) +
+  geom_histogram() +
+  facet_grid(.~timepoint, scales = "free")
+
+hc %>% 
+  ggplot(aes(hcc_m, fill = timepoint)) +
+  geom_density(alpha = 1/2)
+```
+
+```{r}
+hc %>% 
+  ggplot(aes(hcc_i)) +
+  geom_histogram()
+```
+
+## Log-transform
+```{r}
+hc <-
+  hc %>% 
+  mutate(
+    hcc_log_m = log(hcc_m),
+    hcc_log_i = log(hcc_i),
+    # one 0 value 
+    hcc_log_m = if_else(hcc_log_m == -Inf, NA_real_, hcc_log_m),
+    hcc_log_i = if_else(hcc_log_i == -Inf, NA_real_, hcc_log_i)
+  ) %>% 
+  ungroup()
+```
+
+## Trim extreme values
+```{r}
+# hc <-
+#   hc %>%
+#   mutate(
+#     hcc_log_m = if_else(
+#       hcc_log_m > mean(hcc_log_m, na.rm = TRUE) + 3 * sd(hcc_log_m, na.rm = TRUE) |
+#         hcc_log_m < mean(hcc_log_m, na.rm = TRUE) - 3 * sd(hcc_log_m, na.rm = TRUE),
+#     NA_real_, hcc_log_m
+#     ),
+#     hcc_log_i = if_else(
+#       hcc_log_i > mean(hcc_log_i, na.rm = TRUE) + 3 * sd(hcc_log_i, na.rm = TRUE) |
+#         hcc_log_i < mean(hcc_log_i, na.rm = TRUE) - 3 * sd(hcc_log_i, na.rm = TRUE),
+#     NA_real_, hcc_log_i
+#     )
+#   ) %>%
+#   ungroup()
+```
+
+## Visualize log-transformed mother and infant hcc
+```{r}
+hc %>% 
+  ggplot(aes(hcc_log_m)) +
+  geom_histogram() +
+  facet_grid(.~timepoint, scales = "free")
+
+
+hc %>% 
+  ggplot(aes(hcc_log_m, fill = timepoint)) +
+  geom_density(alpha = 1/2)
+
+hc %>% 
+  ggplot(aes(hcc_log_m, fill = phase)) +
+  geom_density(alpha = 1/2)
+```
+
+```{r}
+hc %>% 
+  ggplot(aes(hcc_log_i)) +
+  geom_histogram() 
+```
+
+# Create terms for piecewise modeling
+```{r}
+#http://dpmartin42.github.io/posts/Piecewise-growth
+hc <-
+  hc %>% 
+  mutate(
+    seg_week_cent_birth = if_else(
+      !is.na(gestational_weeks_birth),
+      seg_week - gestational_weeks_birth,
+      seg_week - mean_gestionational_weeks_birth
+    ),
+    # if gestational week of segment is < gestational weeks at birth = gestational week of segment - gestational weeks at birth (i.e, if born at 40 weeks and segment gestational week is 30 weeks = -10); otherwise = 0
+    seg_week_preg = case_when(
+      !is.na(gestational_weeks_birth) & seg_week <= gestational_weeks_birth ~ seg_week_cent_birth,
+      is.na(gestational_weeks_birth) & seg_week < mean_gestionational_weeks_birth ~ seg_week_cent_birth,
+      !is.na(gestational_weeks_birth) & seg_week > gestational_weeks_birth ~ 0,
+      is.na(gestational_weeks_birth) & seg_week > mean_gestionational_weeks_birth ~ 0
+    ),
+     # if gestational week of segment is > gestational weeks at birth = gestational week of segment - gestational weeks at birth (i.e, if born at 40 weeks and segment gestational week is 50 weeks = 10); otherwise = 0
+    seg_week_post = case_when(
+      !is.na(gestational_weeks_birth) & seg_week > gestational_weeks_birth ~ seg_week_cent_birth,
+      is.na(gestational_weeks_birth) & seg_week > mean_gestionational_weeks_birth ~ seg_week_cent_birth,
+      !is.na(gestational_weeks_birth) & seg_week < gestational_weeks_birth ~ 0,
+      is.na(gestational_weeks_birth) & seg_week < mean_gestionational_weeks_birth ~ 0,
+      gestational_weeks_birth == seg_week ~ 0
+    )
+  )
+```
+
+# Counts across phases
+```{r}
+hc %>% 
+  filter(!is.na(hcc_log_m), ID >= 1000) %>% 
+  count(phase)
+```
+
+# Distribution of gestational weeks
+```{r}
+hc %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(seg_week),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+hc %>% 
+  filter(!is.na(hcc_log_m), ID >= 1000) %>% 
+  ggplot(aes(seg_week, fill = timepoint)) +
+  geom_histogram(alpha = 1/2) +
+  theme_hcc +
+  labs(
+    fill = NULL,
+    x = "Weeks since conception"
+  )
+  
+```
+
+# Trajectory of maternal HCC
+```{r}
+hc %>% 
+  filter(segment < 4 & ID >= 1000) %>% 
+  ggplot(aes(seg_week, hcc_log_m)) +
+  geom_smooth(color = "black", span = 1, size = 3) +
+  geom_vline(
+    xintercept = mean_gestionational_weeks_birth, 
+    color = "red", 
+    linetype = "dashed",
+    size = 2
+  ) + 
+  geom_label(
+    x = mean_gestionational_weeks_birth, 
+    y = .35,
+    size = 5,
+    label = "Mean gestational weeks\nat birth"
+  ) +
+  scale_x_continuous(breaks = seq.int(from = 0, to = 70, by = 10)) +
+  scale_y_continuous(breaks = seq.int(from = .5, 2, .2)) +
+  labs(
+    x = "Weeks since conception",
+    y = "Maternal log(HCC) pg/ml"
+  ) +
+  theme_hcc
+
+
+hc %>% 
+  ggplot(aes(seg_week, hcc_log_m)) +
+  geom_point(aes(color = phase), size = 3, alpha = 1/2) +
+  geom_smooth(color = "black", se = FALSE, size = 3) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16),
+    legend.position = "right"
+  )
+```
+
+```{r}
+hc %>% 
+  ggplot(aes(seg_week, hcc_log_m)) +
+  geom_smooth(color = "black", se = FALSE, size = 1, span = 1) +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16),
+    legend.position = "right"
+  ) +
+  facet_wrap(.~factor(ID))
+```
+
+# T3 dyadic data (infant age 6 months data)
+
+```{r}
+hc_t3 <-
+  hc %>% 
+  filter(timepoint == "T3") %>%
+  group_by(ID) %>% 
+  mutate(
+    hcc_m_mean_t2 = mean(hcc_log_m, na.rm = TRUE)
+  ) %>% 
+  ungroup() %>% 
+  filter(!is.na(hcc_i)) %>% 
+  distinct(ID, hcc_m_mean_t2, hcc_i, .keep_all = TRUE)
+```
+
+## Visualize and test dyadic concordance
+```{r}
+hc_t3 %>% 
+  ggplot(aes(x = hcc_m_mean_t2, y = hcc_log_i)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal() +
+  labs(
+    x = "Maternal log(HCC) 6 months postpartum",
+    y = "Infant log(HCC) at age 6 months"
+  )
+
+cor.test(hc_t3$hcc_log_i, hc_t3$hcc_m_mean_t2)
+```
+
+```{r}
+hc <-
+  hc %>% 
+  select(
+    -dyad
+  )
+
+hc_t3 <-
+  hc_t3 %>% 
+  select(
+    -dyad
+  )
+
+
+write_csv(
+  hc, 
+  "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/hair_cortisol/hcc_mom_infant_cleaned_all.csv"
+)
+
+write_csv(
+  hc_t3, 
+  "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/hair_cortisol/hcc_mom_infant_cleaned_t3.csv"
+)
+```
+

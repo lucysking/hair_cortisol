@@ -1,0 +1,27 @@
+"0","```r
+cort_times_wf <-
+  cort_lf %>% 
+  select(
+    ID,
+    sample,
+    time
+  ) %>% 
+  select(
+    ID,
+    sample,
+    time
+  ) %>% 
+  distinct(ID, sample, time) %>% 
+  spread(sample, time, sep = \"_\") %>% 
+  rename_at(
+    vars(starts_with(\"sample\")),
+    funs(str_replace(., \"sample\", \"time\"))
+  )
+cort_wf <-
+  cort_lf %>% 
+  select(-time, -cort_B_log, -cort_M_log) %>% 
+  gather(variable, value,  cort_mean_B, cort_mean_M, cort_B_winlog, cort_M_winlog) %>% 
+  unite(temp, variable, sample) %>% 
+  spread(temp, value) %>% 
+  left_join(cort_times_wf, by = \"ID\")
+```"

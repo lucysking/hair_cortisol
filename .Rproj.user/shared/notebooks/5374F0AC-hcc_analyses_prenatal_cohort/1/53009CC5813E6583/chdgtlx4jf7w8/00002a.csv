@@ -1,0 +1,10 @@
+"0","x <- lmer(
+  hcc_log_m ~
+    phase +
+    (phase|ID),
+  data = d
+)
+"
+"2","boundary (singular) fit: see ?isSingular
+"
+"2","Model failed to converge with 1 negative eigenvalue: -2.9e+00"

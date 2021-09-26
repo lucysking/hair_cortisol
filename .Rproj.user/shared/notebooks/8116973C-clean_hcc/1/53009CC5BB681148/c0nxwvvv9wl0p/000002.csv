@@ -1,0 +1,111 @@
+"0","demo <-"
+"0","  read_csv(demo_lg_file) %>% "
+"0","  select("
+"0","    ID,"
+"0","    due_date,"
+"0","    baby_dob,"
+"0","    visit_date_t1,"
+"0","    scan_date_t2,"
+"0","    behav_visit_date_t3,"
+"0","    male"
+"0","  ) %>% "
+"0","  mutate("
+"0","    due_date = parse_date(due_date, ""%m/%d/%y""),"
+"0","    baby_dob = parse_date(baby_dob, ""%m/%d/%y""),"
+"0","    visit_date_t1 = parse_date(visit_date_t1, ""%m/%d/%y""),"
+"0","    behav_visit_date_t3 = parse_date(behav_visit_date_t3, ""%m/%d/%y"")"
+"0","  ) %>% "
+"0","  bind_rows("
+"0","    read_csv(demo_cs_file) %>% "
+"0","      filter(ID < 1000) %>% "
+"0","      select("
+"0","        ID,"
+"0","        due_date,"
+"0","        baby_dob,"
+"0","        behav_visit_date_t3 = behav_visit_date,"
+"0","        male,"
+"0","      ) "
+"0","  ) %>% "
+"0","  mutate("
+"0","    # for those who did not scan but provided hair at T2, enter date of collection"
+"0","    scan_date_t2 = case_when("
+"0","      ID == 1021 ~ date(""2017-11-17""),"
+"0","      ID == 1032 ~ date(""2017-12-21""),"
+"0","      ID == 1045 ~ date(""2017-12-01""),"
+"0","      ID == 1048 ~ date(""2018-03-12""),"
+"0","      ID == 1052 ~ date(""2017-11-27""),"
+"0","      ID == 1059 ~ date(""2018-01-28""),"
+"0","      ID == 1096 ~ date(""2019-03-16""),"
+"0","      ID == 1121 ~ date(""2019-07-08""),"
+"0","      TRUE ~ date(scan_date_t2)"
+"0","    ),"
+"0","    conception_date = due_date - weeks(40),"
+"0","    # gestational weeks at time of T1 hair collection "
+"0","    weeks_collect_t1 = (conception_date %--% visit_date_t1) / weeks(1),"
+"0","    # gestational weeks at time of baby birth"
+"0","    gestational_weeks_birth = (conception_date %--% baby_dob) / weeks(1),"
+"0","    # postpartum weeks at time of T2 hair collection"
+"0","    postpartum_weeks_collect_t2 = (baby_dob %--% scan_date_t2) / weeks(1),"
+"0","    # gestational weeks at time of T2 hair collection"
+"0","    weeks_collect_t2 = (conception_date %--% scan_date_t2) / weeks(1),"
+"0","    # gestational weeks at time of T3 hair collection"
+"0","    weeks_collect_t3 = (conception_date %--% behav_visit_date_t3) / weeks(1),"
+"0","    # postpartum weeks at time of T3 hair collection"
+"0","     postpartum_weeks_collect_t3 = (baby_dob %--% behav_visit_date_t3) / weeks(1)"
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  educ_describe_t1 = [33mcol_logical()[39m,
+  employment_explain_t1 = [33mcol_logical()[39m,
+  mom_pob_t1 = [31mcol_character()[39m,
+  mom_native_lang_t1 = [31mcol_character()[39m,
+  primarylang_t1 = [31mcol_character()[39m,
+  secondlang_type_t1 = [31mcol_character()[39m,
+  marital_explain_t1 = [31mcol_character()[39m,
+  partner_educ_describe_t1 = [33mcol_logical()[39m,
+  partner_employ_describe_t1 = [31mcol_character()[39m,
+  partner_pob_t1 = [31mcol_character()[39m,
+  ppl_in_home_describe_t1 = [31mcol_character()[39m,
+  second_childage_t1 = [33mcol_logical()[39m,
+  second_childsex_t1 = [33mcol_logical()[39m,
+  third_childage_t1 = [33mcol_logical()[39m,
+  third_childsex_t1 = [33mcol_logical()[39m,
+  fourth_childage_t1 = [33mcol_logical()[39m,
+  fourth_childsex_t1 = [33mcol_logical()[39m,
+  fifth_childage_t1 = [33mcol_logical()[39m,
+  fifth_childsex_t1 = [33mcol_logical()[39m,
+  sixth_childage_t1 = [33mcol_logical()[39m
+  # ... with 97 more columns
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  due_date = [34mcol_date(format = """")[39m,
+  baby_dob = [34mcol_date(format = """")[39m,
+  mom_dob = [34mcol_date(format = """")[39m,
+  baby_race = [31mcol_character()[39m,
+  baby_race_describe = [31mcol_character()[39m,
+  mom_race = [31mcol_character()[39m,
+  momrace_describe = [31mcol_character()[39m,
+  annual_income_txt = [31mcol_character()[39m,
+  education_txt = [31mcol_character()[39m,
+  employment_status_txt = [31mcol_character()[39m,
+  marital_status_txt = [31mcol_character()[39m,
+  partner_educ_txt = [31mcol_character()[39m,
+  partner_employ_txt = [31mcol_character()[39m,
+  educ_describe = [33mcol_logical()[39m,
+  employment_explain = [31mcol_character()[39m,
+  mom_pob = [31mcol_character()[39m,
+  mom_native_lang = [31mcol_character()[39m,
+  primarylang = [31mcol_character()[39m,
+  secondlang_type = [31mcol_character()[39m,
+  marital_explain = [31mcol_character()[39m
+  # ... with 23 more columns
+)
+"
+"2","See spec(...) for full column specifications.
+"

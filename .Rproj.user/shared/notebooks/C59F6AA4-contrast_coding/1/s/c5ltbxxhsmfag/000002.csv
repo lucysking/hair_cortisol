@@ -1,0 +1,7 @@
+"0","d %>% "
+"0","  group_by(cut) %>% "
+"0","  summarize("
+"0","    n = n(),"
+"0","    mean = mean(price),"
+"0","    sd = sd(price)"
+"0","  )"

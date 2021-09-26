@@ -1,0 +1,9 @@
+"0","```r
+cort_lf_reac <-
+  cort_lf %>% 
+  filter(sample <= 4)
+cort_lf_reac %>% 
+  ggplot(aes(time, cort_B_log)) +
+  geom_jitter(alpha = 1/2) +
+  geom_smooth(method = \"lm\", se = FALSE) 
+```"

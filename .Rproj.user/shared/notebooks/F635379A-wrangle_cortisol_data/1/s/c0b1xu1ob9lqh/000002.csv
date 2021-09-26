@@ -1,0 +1,7 @@
+"0","```r
+# join S1 value with cortisol data
+cort_lf <-
+  cort_lf %>% 
+  filter(sample != 1 & sample != 6) %>% 
+  left_join(cort_s1, by = \"ID\")
+```"

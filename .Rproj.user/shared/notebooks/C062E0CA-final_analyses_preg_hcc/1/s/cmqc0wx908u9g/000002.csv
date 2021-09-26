@@ -1,0 +1,89 @@
+"0","```r
+hcc <-
+  hcc %>% 
+  mutate(trimester = as.factor(trimester))
+contrasts(hcc$trimester) = cbind(c(0,1,0), c(0,0,1)) #first is baseline
+hc_trimester1 <- lmer(hc_trimlog ~ trimester + weeks_preg_cent + (trimester|ID), data = hcc)
+summary(hc_trimester1)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ trimester + weeks_preg_cent + (trimester | ID)
+   Data: hcc
+
+REML criterion at convergence: 680.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.2021 -0.4244  0.0674  0.4491  2.5125 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr       
+ ID       (Intercept) 1.5638   1.2505              
+          trimester1  0.1920   0.4382   -0.78      
+          trimester2  0.5208   0.7217   -0.50  0.35
+ Residual             0.1656   0.4070              
+Number of obs: 363, groups:  ID, 58
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       1.275240   0.180884  58.126354   7.050 2.39e-09 ***
+trimester1        0.190587   0.092999  39.935898   2.049 0.047038 *  
+trimester2        0.621378   0.173730  89.139414   3.577 0.000565 ***
+weeks_preg_cent  -0.023773   0.006079 253.550772  -3.911 0.000118 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) trmst1 trmst2
+trimester1  -0.690              
+trimester2  -0.530  0.441       
+wks_prg_cnt  0.207 -0.050 -0.561
+"
+"0","```r
+anova(hc_trimester1, type = 3)
+```"
+"1","Type III Analysis of Variance Table with Satterthwaite's method
+                Sum Sq Mean Sq NumDF   DenDF F value    Pr(>F)    
+trimester       2.1649  1.0824     2  77.018  6.5351 0.0023905 ** 
+weeks_preg_cent 2.5330  2.5330     1 253.551 15.2927 0.0001183 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+"
+"0","```r
+contrasts(hcc$trimester) = cbind(c(1,0,0), c(0,0,1)) #second is baseline
+hc_trimester2 <- lmer(hc_trimlog ~ trimester + weeks_preg_cent + (trimester|ID), data = hcc)
+summary(hc_trimester2)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ trimester + weeks_preg_cent + (trimester | ID)
+   Data: hcc
+
+REML criterion at convergence: 680.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.2021 -0.4244  0.0674  0.4491  2.5125 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr       
+ ID       (Intercept) 0.9054   0.9515              
+          trimester1  0.1920   0.4382    0.56      
+          trimester2  0.4928   0.7020   -0.16  0.27
+ Residual             0.1656   0.4070              
+Number of obs: 363, groups:  ID, 58
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       1.465827   0.134773  60.352719  10.876 7.48e-16 ***
+trimester1       -0.190587   0.092999  39.935883  -2.049 0.047038 *  
+trimester2        0.430792   0.156804  64.557910   2.747 0.007779 ** 
+weeks_preg_cent  -0.023773   0.006079 253.550787  -3.911 0.000118 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) trmst1 trmst2
+trimester1   0.236              
+trimester2  -0.311  0.105       
+wks_prg_cnt  0.244  0.050 -0.593
+"

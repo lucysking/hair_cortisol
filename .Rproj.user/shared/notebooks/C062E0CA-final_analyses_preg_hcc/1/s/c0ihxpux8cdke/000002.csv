@@ -1,0 +1,11 @@
+"0","```r
+hcc %>% 
+  filter(timepoint == \"pregnancy\") %>% 
+  distinct(ID, weeks_preg) %>% 
+  summarise(
+    mean_weeks_preg = mean(weeks_preg),
+    sd_weeks_preg = sd(weeks_preg),
+    min_weeks_preg = min(weeks_preg),
+    max_weeks_preg = max(weeks_preg)
+  )
+```"

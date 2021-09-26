@@ -1,0 +1,6 @@
+"0","  "
+"0","d %>% "
+"0","  summarise_at("
+"0","    vars(hair_wash_freq_mean),"
+"0","    funs(mean, sd, min, max), na.rm = TRUE"
+"0","  )"

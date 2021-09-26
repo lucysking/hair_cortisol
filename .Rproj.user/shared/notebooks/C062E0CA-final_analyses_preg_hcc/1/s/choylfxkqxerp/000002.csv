@@ -1,0 +1,116 @@
+"0","```r
+hcc_first <-
+  hcc %>% 
+  filter(trimester == \"First\")
+hc_child_first <- lmer(hc_trimlog ~ seg_week + sum_sev_child_cent + weeks_preg_cent + (1|ID), data = hcc_first)
+summary(hc_child_first)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + sum_sev_child_cent + weeks_preg_cent +      (1 | ID)
+   Data: hcc_first
+
+REML criterion at convergence: 214.3
+
+Scaled residuals: 
+     Min       1Q   Median       3Q      Max 
+-2.28998 -0.34937  0.01961  0.29752  2.05937 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ ID       (Intercept) 1.5060   1.2272  
+ Residual             0.2295   0.4791  
+Number of obs: 76, groups:  ID, 38
+
+Fixed effects:
+                   Estimate Std. Error       df t value Pr(>|t|)  
+(Intercept)         0.58957    0.56167 51.84815   1.050   0.2987  
+seg_week            0.03578    0.02079 38.41314   1.721   0.0932 .
+sum_sev_child_cent -0.01175    0.02091 34.10861  -0.562   0.5780  
+weeks_preg_cent    -0.05057    0.05407 37.34605  -0.935   0.3556  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk sm_s__
+seg_week    -0.425              
+sm_sv_chld_  0.294  0.013       
+wks_prg_cnt  0.883 -0.162  0.329
+"
+"0","```r
+hcc_second <-
+  hcc %>% 
+  filter(trimester == \"Second\")
+hc_child_second <- lmer(hc_trimlog ~ seg_week + sum_sev_child_cent + weeks_preg_cent + (seg_week|ID), data = hcc_second)
+summary(hc_child_second)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + sum_sev_child_cent + weeks_preg_cent +      (seg_week | ID)
+   Data: hcc_second
+
+REML criterion at convergence: 296.5
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.5664 -0.3362 -0.0344  0.3520  2.9942 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr 
+ ID       (Intercept) 2.204220 1.48466       
+          seg_week    0.001564 0.03954  -0.84
+ Residual             0.107795 0.32832       
+Number of obs: 150, groups:  ID, 55
+
+Fixed effects:
+                   Estimate Std. Error       df t value Pr(>|t|)    
+(Intercept)         1.27029    0.29754 54.85137   4.269 7.83e-05 ***
+seg_week            0.02449    0.01000 36.61575   2.448   0.0193 *  
+sum_sev_child_cent  0.02906    0.01302 53.37411   2.232   0.0298 *  
+weeks_preg_cent     0.02224    0.02327 57.10443   0.956   0.3432    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk sm_s__
+seg_week    -0.823              
+sm_sv_chld_  0.012  0.044       
+wks_prg_cnt  0.521 -0.184  0.090
+"
+"0","```r
+hcc_third <-
+  hcc %>% 
+  filter(trimester == \"Third\")
+hc_child_third <- lmer(hc_trimlog ~ seg_week +  sum_sev_child_cent + weeks_preg_cent + (seg_week|ID), data = hcc_third)
+summary(hc_child_third)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + sum_sev_child_cent + weeks_preg_cent +      (seg_week | ID)
+   Data: hcc_third
+
+REML criterion at convergence: 237.6
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.8049 -0.4298  0.0684  0.4133  2.6005 
+
+Random effects:
+ Groups   Name        Variance Std.Dev. Corr 
+ ID       (Intercept) 4.53666  2.12994       
+          seg_week    0.00111  0.03332  -0.97
+ Residual             0.11053  0.33246       
+Number of obs: 129, groups:  ID, 37
+
+Fixed effects:
+                    Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)         0.966768   0.442746 31.422724   2.184 0.036579 *  
+seg_week            0.041263   0.010530 35.734441   3.919 0.000385 ***
+sum_sev_child_cent  0.007502   0.015186 27.054291   0.494 0.625267    
+weeks_preg_cent    -0.050142   0.006562 84.849993  -7.641 2.99e-11 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk sm_s__
+seg_week    -0.904              
+sm_sv_chld_ -0.025  0.010       
+wks_prg_cnt  0.138 -0.388  0.035
+"

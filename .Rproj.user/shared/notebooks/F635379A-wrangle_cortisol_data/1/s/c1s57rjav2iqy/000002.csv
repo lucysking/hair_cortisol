@@ -1,0 +1,18 @@
+"0","```r
+#Libraries
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(lme4)
+library(lmerTest)
+library(modelr)
+library(lcmm)
+library(nnet)
+#Parameters
+#files_________________________________________________________
+crf_file <- \"~/Box/lucy_king_files/BABIES/infant_cortisol/data/hormone_exclude_tracker_20191115.csv\"
+cort_files <- \"~/Box/lucy_king_files/BABIES/infant_cortisol/data/cort_files/\"
+#functions_________________________________________________________
+source(\"~/Desktop/BABIES/infant_cortisol/winsorize.R\")
+source(\"~/Desktop/BABIES/infant_cortisol/identify_outliers_histogram.R\")
+```"

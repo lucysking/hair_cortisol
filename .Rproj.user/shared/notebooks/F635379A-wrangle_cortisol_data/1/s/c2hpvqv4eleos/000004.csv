@@ -1,0 +1,6 @@
+"0","```r
+cort_lf %>% 
+  ggplot(aes(time, cort_M_winlog)) +
+  geom_jitter(alpha = 1/2) +
+  geom_smooth(method = \"loess\", se = FALSE) 
+```"

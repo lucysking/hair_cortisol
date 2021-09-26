@@ -1,0 +1,115 @@
+"0","```r
+hc_crisys0 <- lmer(hc_trimlog ~ seg_week + crisys_cent + weeks_preg_cent + (seg_week|ID), data = hcc)
+summary(hc_crisys0)
+
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week + crisys_cent + weeks_preg_cent + (seg_week |      ID)
+   Data: hcc
+
+REML criterion at convergence: 683.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.6540 -0.3283  0.0476  0.4229  2.8453 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.8043427 1.34326       
+          seg_week    0.0009279 0.03046  -0.75
+ Residual             0.1896378 0.43547       
+Number of obs: 355, groups:  ID, 57
+
+Fixed effects:
+                  Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)       1.026754   0.206480  69.250096   4.973 4.60e-06 ***
+seg_week          0.026824   0.006142 101.497321   4.368 3.03e-05 ***
+crisys_cent       0.065790   0.035192  55.301082   1.869   0.0669 .  
+weeks_preg_cent  -0.021263   0.005202 301.864666  -4.088 5.59e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk crsys_
+seg_week    -0.791              
+crisys_cent -0.010  0.009       
+wks_prg_cnt  0.345 -0.508  0.032
+"
+"0","```r
+hc_crisys <- lmer(hc_trimlog ~ seg_week * crisys_cent + weeks_preg_cent + (seg_week|ID), data = hcc)
+summary(hc_crisys)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ seg_week * crisys_cent + weeks_preg_cent + (seg_week |      ID)
+   Data: hcc
+
+REML criterion at convergence: 693.3
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.6619 -0.3362  0.0391  0.4201  2.8710 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.8113210 1.34585       
+          seg_week    0.0009509 0.03084  -0.75
+ Residual             0.1892739 0.43506       
+Number of obs: 355, groups:  ID, 57
+
+Fixed effects:
+                       Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)            1.036014   0.206924  69.372468   5.007 4.03e-06 ***
+seg_week               0.026655   0.006174 101.146625   4.317 3.69e-05 ***
+crisys_cent            0.021792   0.054024  54.336166   0.403    0.688    
+weeks_preg_cent       -0.021301   0.005203 301.286380  -4.094 5.46e-05 ***
+seg_week:crisys_cent   0.001625   0.001514  58.924031   1.073    0.288    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) seg_wk crsys_ wks_p_
+seg_week    -0.794                     
+crisys_cent -0.036  0.025              
+wks_prg_cnt  0.343 -0.504  0.027       
+sg_wk:crsy_  0.039 -0.024 -0.761 -0.008
+"
+"0","```r
+hc_crisys2 <- lmer(hc_trimlog ~ poly(seg_week, 2) * crisys_cent + (seg_week|ID), data = hcc)
+summary(hc_crisys2)
+```"
+"1","Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: hc_trimlog ~ poly(seg_week, 2) * crisys_cent + (seg_week | ID)
+   Data: hcc
+
+REML criterion at convergence: 677.4
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.3531 -0.3679  0.0379  0.4601  2.7599 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ ID       (Intercept) 1.7688620 1.32999       
+          seg_week    0.0009356 0.03059  -0.75
+ Residual             0.2004138 0.44768       
+Number of obs: 355, groups:  ID, 57
+
+Fixed effects:
+                                Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept)                      1.61280    0.12949  54.66542  12.455   <2e-16 ***
+poly(seg_week, 2)1               2.62438    1.08481  51.62872   2.419   0.0191 *  
+poly(seg_week, 2)2              -0.60237    0.60760 272.96108  -0.991   0.3224    
+crisys_cent                      0.05697    0.03603  55.36807   1.582   0.1195    
+poly(seg_week, 2)1:crisys_cent   0.25442    0.30832  56.55010   0.825   0.4127    
+poly(seg_week, 2)2:crisys_cent  -0.23093    0.16981 264.02465  -1.360   0.1750    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+            (Intr) pl(_,2)1 pl(_,2)2 crsys_ p(_,2)1:
+ply(sg_,2)1 -0.262                                  
+ply(sg_,2)2  0.092 -0.050                           
+crisys_cent -0.020  0.052   -0.025                  
+ply(_,2)1:_  0.051 -0.035    0.138   -0.230         
+ply(_,2)2:_ -0.025  0.141   -0.120    0.098  0.019  
+"

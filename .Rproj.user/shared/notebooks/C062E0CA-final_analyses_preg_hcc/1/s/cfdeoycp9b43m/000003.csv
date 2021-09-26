@@ -1,0 +1,5 @@
+"0","```r
+hcc %>% 
+  distinct(ID, hair_dye_preg) %>% 
+  count(hair_dye_preg)
+```"

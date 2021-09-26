@@ -1,0 +1,87 @@
+"0","```r
+cort_lf <- 
+  list.files(
+    path = cort_files,
+    full.names = TRUE
+  ) %>% 
+  map_dfr(
+    ., 
+    function(...) read_xlsx(
+      ..., 
+      sheet = \"Final Report\",
+      range = \"A8:E500\",
+      col_names = c(
+        \"salimetrics_id\",
+        \"ID\",
+        \"cort_rep_1\",
+        \"cort_rep_2\",
+        \"cort_mean\"
+      ),
+      col_types = c(\"text\")
+    )
+  ) %>% 
+  separate(
+    ID, 
+    sep = \"_\",
+    into = c(\"ID\", \"person\")
+  ) %>% 
+  mutate(
+    sample = str_extract(
+      person,
+      pattern = \"\\d\"
+    ),
+    person = str_sub(
+      person,
+      start = 1,
+      end = 1
+    ),
+    # use single assay if no duplicate; otherwise use mean of duplicates
+    cort_mean = if_else(
+      cort_rep_2 == \"qns\", cort_rep_1, cort_mean
+    )
+  ) %>% 
+  select(
+    ID,
+    sample,
+    person,
+    cort_mean,
+    -salimetrics_id,
+  ) 
+```"
+"1","
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+
+-
+/
+                                                                                                                  
+"

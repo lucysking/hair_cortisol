@@ -1,0 +1,12 @@
+"0","```r
+# subset S1 value to be used as covariate
+cort_s1 <-
+  cort_lf %>% 
+  filter(sample == 1) %>% 
+  ungroup() %>% 
+  select(
+    ID, 
+    s1_cort_mean_B = cort_mean_B, 
+    s1_cort_mean_M = cort_mean_M
+  )
+```"

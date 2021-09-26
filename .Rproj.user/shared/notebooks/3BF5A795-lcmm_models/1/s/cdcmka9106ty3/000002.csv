@@ -1,0 +1,16 @@
+"0","```r
+anova(lme_arrivetime, lme_ageX)
+
+```"
+"1","refitting model(s) with ML (instead of REML)
+"
+"1","Data: cort_lf
+Models:
+lme_arrivetime: cort_B_winlog ~ time_hr + scale(crf_time_arrived, scale = FALSE) + 
+lme_arrivetime:     (time_hr | ID)
+lme_ageX: cort_B_winlog ~ time_hr * scale(age_behav, scale = FALSE) + scale(crf_time_arrived, 
+lme_ageX:     scale = FALSE) + (time_hr | ID)
+               Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+lme_arrivetime  7 676.76 705.65 -331.38   662.76                         
+lme_ageX        9 678.82 715.97 -330.41   660.82 1.9346      2     0.3801
+"
