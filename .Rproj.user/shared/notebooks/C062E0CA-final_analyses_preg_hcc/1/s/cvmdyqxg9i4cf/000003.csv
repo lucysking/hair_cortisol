@@ -1,6 +1,0 @@
-"0","```r
-hcc %>% 
-  distinct(ID, num_stress_preg) %>% 
-  count(num_stress_preg >= 1) %>% 
-  mutate(per = n / sum(n))
-```"

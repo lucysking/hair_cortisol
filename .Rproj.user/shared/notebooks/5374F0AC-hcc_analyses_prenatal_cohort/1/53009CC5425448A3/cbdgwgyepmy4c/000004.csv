@@ -1,4 +1,0 @@
-"0",""
-"0","d %>% "
-"0","  distinct(ID, timepoint, hair_wash_freq) %>% "
-"0","  count(timepoint, hair_wash_freq)"

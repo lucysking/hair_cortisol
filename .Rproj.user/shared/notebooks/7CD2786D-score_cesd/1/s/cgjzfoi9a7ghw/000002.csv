@@ -1,8 +1,0 @@
-"0","#Libraries"
-"0","library(tidyverse)"
-"0",""
-"0","#Parameters"
-"0","cesd_lg_file <- ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/CESD/raw_data/cesd_lg_complete.csv"""
-"0","cesd_cs_file <- ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/CESD/raw_data/cesd_cs_complete.csv"""
-"0","cesd_18mo_cs_file <- ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/survey_18month/raw_data/mo18_survey_cs_complete.csv"""
-"0","cesd_18mo_lg_file <- ""~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/survey_18month/raw_data/mo18_survey_lg_20201001.csv"""

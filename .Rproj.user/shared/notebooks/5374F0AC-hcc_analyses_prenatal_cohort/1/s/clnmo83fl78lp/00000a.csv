@@ -1,9 +1,0 @@
-"0","do %>% "
-"0","  select(proximal, distal) %>% "
-"0","  psych::ICC()"
-"1","Call: "
-"1","psych::ICC(x = .)
-"
-"1","
-Intraclass correlation coefficients 
-"

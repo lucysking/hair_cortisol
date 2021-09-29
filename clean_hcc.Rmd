@@ -1,8 +1,10 @@
 ---
 title: "Clean mother and infant hair cortisol data"
 author: "Lucy King"
-date: "4/15/2020"
-output: html_document
+output: 
+  html_notebook:
+    toc: true
+    toc_depth: 2
 ---
 
 # Environment
@@ -299,25 +301,6 @@ hc <-
   ungroup()
 ```
 
-## Trim extreme values
-```{r}
-# hc <-
-#   hc %>%
-#   mutate(
-#     hcc_log_m = if_else(
-#       hcc_log_m > mean(hcc_log_m, na.rm = TRUE) + 3 * sd(hcc_log_m, na.rm = TRUE) |
-#         hcc_log_m < mean(hcc_log_m, na.rm = TRUE) - 3 * sd(hcc_log_m, na.rm = TRUE),
-#     NA_real_, hcc_log_m
-#     ),
-#     hcc_log_i = if_else(
-#       hcc_log_i > mean(hcc_log_i, na.rm = TRUE) + 3 * sd(hcc_log_i, na.rm = TRUE) |
-#         hcc_log_i < mean(hcc_log_i, na.rm = TRUE) - 3 * sd(hcc_log_i, na.rm = TRUE),
-#     NA_real_, hcc_log_i
-#     )
-#   ) %>%
-#   ungroup()
-```
-
 ## Visualize log-transformed mother and infant hcc
 ```{r}
 hc %>% 
@@ -370,92 +353,6 @@ hc <-
   )
 ```
 
-# Counts across phases
-```{r}
-hc %>% 
-  filter(!is.na(hcc_log_m), ID >= 1000) %>% 
-  count(phase)
-```
-
-# Distribution of gestational weeks
-```{r}
-hc %>% 
-  group_by(timepoint) %>% 
-  summarise_at(
-    vars(seg_week),
-    funs(mean, sd, min, max), na.rm = TRUE
-  )
-
-hc %>% 
-  filter(!is.na(hcc_log_m), ID >= 1000) %>% 
-  ggplot(aes(seg_week, fill = timepoint)) +
-  geom_histogram(alpha = 1/2) +
-  theme_hcc +
-  labs(
-    fill = NULL,
-    x = "Weeks since conception"
-  )
-  
-```
-
-# Trajectory of maternal HCC
-```{r}
-hc %>% 
-  filter(segment < 4 & ID >= 1000) %>% 
-  ggplot(aes(seg_week, hcc_log_m)) +
-  geom_smooth(color = "black", span = 1, size = 3) +
-  geom_vline(
-    xintercept = mean_gestionational_weeks_birth, 
-    color = "red", 
-    linetype = "dashed",
-    size = 2
-  ) + 
-  geom_label(
-    x = mean_gestionational_weeks_birth, 
-    y = .35,
-    size = 5,
-    label = "Mean gestational weeks\nat birth"
-  ) +
-  scale_x_continuous(breaks = seq.int(from = 0, to = 70, by = 10)) +
-  scale_y_continuous(breaks = seq.int(from = .5, 2, .2)) +
-  labs(
-    x = "Weeks since conception",
-    y = "Maternal log(HCC) pg/ml"
-  ) +
-  theme_hcc
-
-
-hc %>% 
-  ggplot(aes(seg_week, hcc_log_m)) +
-  geom_point(aes(color = phase), size = 3, alpha = 1/2) +
-  geom_smooth(color = "black", se = FALSE, size = 3) +
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    plot.title = element_text(size = 18, hjust = .5),
-    axis.title = element_text(size = 18),
-    axis.text = element_text(size = 16),
-    legend.title = element_text(size = 18), 
-    legend.text = element_text(size = 16),
-    legend.position = "right"
-  )
-```
-
-```{r}
-hc %>% 
-  ggplot(aes(seg_week, hcc_log_m)) +
-  geom_smooth(color = "black", se = FALSE, size = 1, span = 1) +
-  theme(
-    panel.grid = element_blank(),
-    plot.title = element_text(size = 18, hjust = .5),
-    axis.title = element_text(size = 18),
-    axis.text = element_text(size = 16),
-    legend.title = element_text(size = 18), 
-    legend.text = element_text(size = 16),
-    legend.position = "right"
-  ) +
-  facet_wrap(.~factor(ID))
-```
 
 # T3 dyadic data (infant age 6 months data)
 
@@ -470,21 +367,6 @@ hc_t3 <-
   ungroup() %>% 
   filter(!is.na(hcc_i)) %>% 
   distinct(ID, hcc_m_mean_t2, hcc_i, .keep_all = TRUE)
-```
-
-## Visualize and test dyadic concordance
-```{r}
-hc_t3 %>% 
-  ggplot(aes(x = hcc_m_mean_t2, y = hcc_log_i)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  theme_minimal() +
-  labs(
-    x = "Maternal log(HCC) 6 months postpartum",
-    y = "Infant log(HCC) at age 6 months"
-  )
-
-cor.test(hc_t3$hcc_log_i, hc_t3$hcc_m_mean_t2)
 ```
 
 ```{r}

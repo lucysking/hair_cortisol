@@ -1,4 +1,0 @@
-"0","# number of participants"
-"0","d %>% "
-"0","  distinct(ID, timepoint, steroid_recent) %>% "
-"0","  count(timepoint, steroid_recent)"

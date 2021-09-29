@@ -1,7 +1,0 @@
-"0","```r
-hc %>% 
-  group_by(timepoint, segment) %>% 
-  summarise(
-    hc_trimlog_mean = mean(hc_trimlog, na.rm = TRUE)
-  )
-```"

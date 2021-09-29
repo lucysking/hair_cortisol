@@ -1,8 +1,0 @@
-"0","```r
-hcc %>% 
-  distinct(ID, sum_sev_childhood) %>% 
-  summarise_at(
-    vars(sum_sev_childhood),
-    funs(mean, sd, min, max), na.rm = TRUE
-  )
-```"

@@ -1,8 +1,10 @@
 ---
-title: ""
+title: "Analyses for __Hair cortisol concentration across the peripartum period: Documenting changes and associations with depressive symptoms and recent adversity__"
 author: "Lucy King"
-date: "4/17/2020"
-output: html_document
+output: 
+  html_notebook:
+    toc: true
+    toc_depth: 2
 ---
 
 # Environment
@@ -15,11 +17,10 @@ library(ggpubr)
 library(lmerTest)
 library(performance)
 library(effectsize)
-library(parameters)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
-source("winsorize.R")
+library(labelled)
 
 # Files
 home <- "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/"
@@ -48,6 +49,7 @@ cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2"
 
 options(scipen = 999)
 
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
 ```
 
 # Read in data
@@ -195,6 +197,7 @@ d %>%
 d %>% 
   count(timepoint, steroid_recent)
 ```
+
 ```{r}
 d <-
   d %>% 
@@ -254,6 +257,7 @@ d %>%
   spread(timepoint, hcc) %>% 
   count(T1, T2, T3)
 ```
+
 ### by phase
 ```{r}
 d %>% 
@@ -360,8 +364,8 @@ d %>%
   ) +
   facet_grid(.~timepoint)
 ```
-### CRISYS scores at each timepoint
 
+### CRISYS scores at each timepoint
 ```{r}
 d %>% 
   ggplot(aes(crisys)) +
@@ -373,7 +377,8 @@ d %>%
   ) +
   facet_grid(.~timepoint)
 ```
-## Internal consistency of CESD and CRISYS
+
+## Internal consistency of CESD 
 ```{r}
 r <-
   read_csv(cesd_file) %>% 
@@ -407,56 +412,9 @@ r %>%
   ) %>% 
   dplyr::select(
     ends_with("_T3"),
-    -cesd_t2
+    -cesd_t3
   ) %>% 
   psych::alpha()
-```
-
-### CESD
-```{r}
-r %>% 
-  dplyr::select(
-    contains("crisys")
-  ) %>% 
-  dplyr::select(
-    ends_with("_T1"),
-    -crisys_total_T1:-crisys_ses_win_T1,
-    # removing items below due to high missingness / 0 variance
-    -crisys_69_T1,
-    -crisys_70_T1,
-    -crisys_71_T1
-  ) %>% 
-  psych::alpha()
-
-r %>% 
-  dplyr::select(
-    contains("crisys")
-  ) %>% 
-  dplyr::select(
-    ends_with("_T2"),
-    -crisys_total_T2:-crisys_ses_win_T2,
-    -crisys_69_T2,
-    -crisys_70_T2,
-    -crisys_71_T2
-  ) %>% 
-  psych::alpha()
-
-r %>% 
-  dplyr::select(
-    contains("crisys")
-  ) %>% 
-  dplyr::select(
-    ends_with("_T3"),
-    -crisys_total_T3:-crisys_ses_win_T3,
-    -crisys_20_T3,
-    -crisys_47_T3,
-    -crisys_68_T3,
-    -crisys_69_T3,
-    -crisys_70_T3,
-    -crisys_71_T3
-  ) %>% 
-  psych::alpha()
-
 ```
 
 ## Demographics, means, SDs, ranges
@@ -841,16 +799,6 @@ ggsave(
 )
 ```
 
-
-```{r}
-d3 <-
-  d %>% 
-  filter(segment < 4)
-
-d3 %>% 
-  distinct(ID, timepoint) %>% count(timepoint)
-```
-
 ## Fit piecewise linear mixed model of HCC, covarying for segment as a random effect
 
 Piecewise model is centered at birth of infant (due date if birth date never provided)
@@ -864,8 +812,6 @@ mlm1 <- lmer(
 )
 
 summary(mlm1)
-mlm1_parameters <- model_parameters(mlm1)
-mlm1_parameters
 performance(mlm1)
 tab_model(mlm1)
 ```
@@ -941,21 +887,6 @@ pred_mlm1 %>%
     aes(xintercept = 0),
     linetype = "dotted",
     size = 1
-  ) +
-  annotate(
-    "text", 
-    x = 15, 
-    y = -.35,
-    size = 5,
-    colour = "grey45", 
-    label = paste0("Mean[SD] gestational \nweeks = ", mean_gestation_birth , "[", sd_gestation_birth, "]")
-  ) +
-  geom_curve(
-    aes(x = 11, y = -.5, xend = 0, yend = -.7), 
-    arrow = arrow(length = unit(0.07, "inches")), 
-    size = 0.2,
-    colour = "grey65", 
-    curvature = -.3
   ) +
   scale_y_continuous(breaks = seq.int(-1, 1, .25), limits = c(-1, 1)) +
   scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
@@ -1035,17 +966,15 @@ mlm2 <- lmer(
   scale(hcc_log_m) ~ 
     scale(seg_week_preg) +
     scale(seg_week_post) +
-    scale(crisys_mu) +
-    scale(crisys_pc) +
+    scale(crisys_mu, scale = FALSE) +
+    crisys_pc +
     (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
   data = d
 )
 
 summary(mlm2)
-mlm2_parameters <- model_parameters(mlm2)
-mlm2_parameters
 performance(mlm2)
-
+tab_model(mlm2)
 ```
 
 ## Visualize effect of psychosocial adversity
@@ -1058,7 +987,7 @@ acov_mlm2 <- vcov(mlm2)
 
 pred_mlm2 <- expand.grid(
   crisys_mu = 0,
-  crisys_pc = seq(-3, 3, 1)
+  crisys_pc = seq(-5, 5, 1)
 ) %>% 
   mutate(
     seg_week_preg = 0,
@@ -1108,7 +1037,7 @@ pred_mlm2 %>%
   ) +
   geom_line(size = 2) +
   scale_y_continuous(breaks = seq.int(-1, 1, .25), limits = c(-1, 1)) +
-  scale_x_continuous(breaks = seq.int(-3, 3, 1)) +
+  scale_x_continuous(breaks = seq.int(-5, 5, 1)) +
   theme_pubr() +
   theme(
     strip.text = element_text(size = 16),
@@ -1139,16 +1068,15 @@ mlm3 <- lmer(
   hcc_log_m ~ 
     scale(seg_week_preg) +
     scale(seg_week_post) +
-    scale(cesd_mu) +
-    scale(cesd_pc) +
+    scale(cesd_mu, scale = FALSE) +
+    cesd_pc +
     (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
   data = d
 )
 
 summary(mlm3)
-mlm3_parameters <- model_parameters(mlm3)
-mlm3_parameters
 performance(mlm3)
+tab_model(mlm3)
 ```
 
 
@@ -1166,10 +1094,8 @@ mlm4 <- lmer(
 )
 
 summary(mlm4)
-mlm4_parameters <- model_parameters(mlm4)
-mlm4_parameters
 performance(mlm4)
-
+tab_model(mlm4)
 ```
 
 
@@ -1193,14 +1119,12 @@ mlm5_fall <- lmer(
 
 anova(mlm5_fall)
 summary(mlm5_fall)
-mlm5_fall_parameters <- model_parameters(mlm5_fall)
-mlm5_fall_parameters
 performance(mlm5_fall)
 ```
 
 ### Estimated marginal means across seasons
 ```{r}
-emmeans_season <- emmeans(mlm5_fall, specs = "season")
+emmeans_season <- emmeans::emmeans(mlm5_fall, specs = "season")
 emmeans_season
 ```
 
@@ -1218,8 +1142,7 @@ mlm6 <- lmer(
 )
 
 summary(mlm6)
-mlm6_summer_parameters <- model_parameters(mlm6)
-mlm6_summer_parameters
+tab_model(mlm6)
 ```
 
 ### Hair washing frequency
@@ -1234,9 +1157,89 @@ mlm7 <- lmer(
 )
 
 summary(mlm7)
-mlm7_summer_parameters <- model_parameters(mlm7)
-mlm7_summer_parameters
+tab_model(mlm7)
 ```
 
 
+```{r}
+de <- 
+  d %>% 
+  select(
+    ID,
+    timepoint, 
+    segment,
+    seg_week,
+    seg_week_preg,
+    seg_week_post,
+    seg_week_cent_birth,
+    hcc_m,
+    hcc_log_m,
+    cesd,
+    cesd_mu,
+    cesd_pc,
+    crisys,
+    crisys_mu,
+    crisys_pc,
+    mom_age_t1,
+    gestational_weeks_birth,
+    weeks_collect_t1,
+    weeks_collect_t2,
+    weeks_collect_t3,
+    hair_wash_freq_mean,
+    hair_chemexp_past5mo,
+    season,
+    mom_race,
+    mom_latinx,
+    annual_income_t1_txt
+  ) %>% 
+  arrange(ID, timepoint, segment) %>% 
+  # replace ID numbers
+  group_by(ID) %>% 
+  mutate(
+    git_id = sample(10000000,1)
+  ) %>% 
+  ungroup() %>% 
+  select(
+    git_id,
+    everything(),
+    -ID
+  )
+
+var_label(de) <- 
+  list(
+    git_id = "Participant ID number for sharing on github",
+    timepoint = "Timepoint of assessment",
+    segment = "Distance from scalp of HCC estimate, ranging from 0-1 to 4-5 cm",
+    seg_week = "Corresponding to HCC estimate, weeks since conception",
+    seg_week_preg = "Piecewise modeling term for weeks since conception in pregnancy",
+    seg_week_post = "Piecewise modeling term for weeks since birth in postnatal period",
+    seg_week_cent_birth = "seg_week centered at the gestational weeks of birth",
+    hcc_m = "Raw HCC estimate",
+    hcc_log_m = "log-transformed HCC estimate [log(hcc_m)]",
+    cesd = "Current self-reported depressive symptoms on the CES-D",
+    cesd_mu = "Mean current self-reported depressive symptoms on the CES-D",
+    cesd_pc = "Person-mean-centered current self-reported depressive symptoms on the CES-D",
+    crisys = "Recent life adversity on the CRISYS",
+    crisys_mu = "Mean recent life adversity on the CRISYS",
+    crisys_pc = "Person-mean-centered recent life adversity on the CRISYS",
+    mom_age_t1 = "Age at T1",
+    gestational_weeks_birth = "Gestational weeks of infant at birth",
+    weeks_collect_t1 = "Weeks since conception at T1 hair collection",
+    weeks_collect_t2 = "Weeks since conception at T2 hair collection",
+    weeks_collect_t3 = "Weeks since conception at T3 hair collection",
+    hair_wash_freq_mean = "Mean self-reported hair washing frequency",
+    hair_chemexp_past5mo = "Hair chemical exposure/heat treatment in last 5 months",
+    season = "Season in which hair was collected",
+    mom_race = "Self-reported race",
+    mom_latinx = "Self-reported Hispanic/Latinx ethnicity",
+    annual_income_t1_txt = "Self-reported annual household income"
+  )
+    
+metadata(de)$name <- "Analysed data for \"Hair cortisol concentration across the peripartum period: Documenting changes and associations with depressive symptoms and recent adversity\" (King et al. 2021)"
+
+# write_csv(
+#   de,
+#   "~/Desktop/BABIES/hair_cortisol/king_etal_analyzed_data_20210929.csv"
+# )
+```
 

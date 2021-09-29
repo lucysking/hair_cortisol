@@ -1,8 +1,0 @@
-"0","d_gam1 <- "
-"0","  d %>%"
-"0","  select("
-"0","    ID,"
-"0","    seg_week,"
-"0","    hcc_log_m"
-"0","  ) %>% "
-"0","  mutate(pred = predict.gam(gam1$gam, type = ""link"", newdata = d))"
