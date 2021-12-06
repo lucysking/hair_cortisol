@@ -2,7 +2,7 @@
 title: "Analyses for __Hair cortisol concentration across the peripartum period: Documenting changes and associations with depressive symptoms and recent adversity__"
 author: "Lucy King"
 output: 
-  html_notebook:
+  github_document:
     toc: true
     toc_depth: 2
 ---
@@ -21,6 +21,7 @@ library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
 library(labelled)
+library(codebook)
 
 # Files
 home <- "~/Box/Mooddata_Coordinating/BABIES/Data/final_scored_data/"
@@ -168,6 +169,13 @@ d <-
     crisys_mu = mean(crisys, na.rm = TRUE),
     crisys_pc = if_else(
       !is.na(crisys), crisys - crisys_mu, NA_real_
+    ),
+    # relabel timepoint variable levels
+    timepoint = recode(
+      timepoint,
+      "T1" = "C1",
+      "T2" = "C2",
+      "T3" = "C3"
     )
   ) %>% 
   ungroup()
@@ -255,7 +263,7 @@ d %>%
   select(-hcc_log_m) %>% 
   distinct(ID, timepoint, hcc) %>% 
   spread(timepoint, hcc) %>% 
-  count(T1, T2, T3)
+  count(C1, C2, C3)
 ```
 
 ### by phase
@@ -281,30 +289,128 @@ d %>%
 d %>% 
   count(phase)
 ```
+## Visualization of sampling approach
+```{r}
+d_timepoint <-
+  d %>% 
+  mutate(ID = as.factor(ID)) %>% 
+  select(
+    ID,
+    timepoint,
+    seg_week_cent_birth
+  ) %>% 
+  mutate(
+    seg_week_preg = if_else(
+      timepoint == "C1",
+      seg_week_cent_birth, NA_real_
+    )
+  )
+
+
+approach_p <-
+  d_timepoint %>% 
+  ggplot(
+    aes(
+      seg_week_cent_birth, 
+      fct_reorder2(ID,  seg_week_preg, seg_week_cent_birth, .desc = FALSE), 
+      color = timepoint
+    )
+  ) +
+  geom_point() +
+  geom_path() +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dotted",
+    size = 2
+  ) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  scale_color_manual(values = cbbPalette) +
+  theme_hcc +
+  theme(
+    legend.position = "right",
+    axis.text.y = element_blank()
+  ) +
+  labs(
+    color = "Hair collection\noccasion",
+    x = "Weeks from childbirth",
+    y = "Participant"
+  )
+approach_p
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/collection_method.png",
+  width = 8,
+  height = 6
+)
+```
 ## Distributions
 
 ### Weeks since conception
 ```{r}
-d %>% 
-  ggplot(aes(seg_week, fill = timepoint)) +
+weeks_density_p <- 
+  d %>% 
+  ggplot(aes(seg_week_cent_birth, fill = timepoint)) +
   geom_density(alpha = 1/2) +
-  theme_hcc +
-  scale_x_continuous(breaks = seq.int(0, 65, 10)) +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dotted",
+    size = 2
+  ) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
   scale_fill_manual(values = cbbPalette) +
+  theme_hcc +
+  theme(
+    legend.position = "right"
+  ) +
+  labs(
+    fill = "Hair collection\noccasion",
+    x = "Weeks from childbirth",
+    y = "Density of HCC observations"
+  )
+weeks_density_p
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_timepoint_density.png",
+  width = 8,
+  height = 6
+)
+```
+
+```{r}
+ggarrange(
+  weeks_density_p, 
+  approach_p, 
+  nrow = 2, 
+  labels = c("A", "B"), 
+  hjust = -3,
+  font.label = list(size = 16)
+)
+
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_method_plots.png",
+  dpi = 600,
+  width = 10,
+  height = 12
+)
+```
+
+```{r}
+d %>% 
+  ggplot(aes(seg_week_cent_birth)) +
+  geom_histogram() +
+  #scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  scale_fill_manual(values = cbbPalette) +
+  theme_hcc +
   theme(
     legend.position = "right"
   ) +
   labs(
     fill = "Assessment\ntimepoint",
-    x = "Weeks since conception of fetus",
+    x = "Weeks from childbirth",
     y = "Density of HCC observations"
-  )
+  ) +
+  facet_wrap(.~timepoint, scale = "free")
 
-ggsave(
-  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_timepoint_density.png",
-  width = 9,
-  height = 7
-)
 ```
 
 ### HCC in each phase
@@ -435,6 +541,20 @@ d %>%
     funs(mean, sd, min, max), na.rm  = TRUE
   )
 ```
+### Segments
+```{r}
+d %>% 
+  group_by(ID, timepoint) %>% 
+  count() %>% 
+  ungroup() %>% 
+  count(timepoint, (n == 5))
+  
+d %>% 
+  group_by(ID, timepoint) %>% 
+  count() %>% 
+  ungroup() %>% 
+  count(timepoint, n)
+```
 
 ### HCC
 ```{r}
@@ -459,12 +579,26 @@ d %>%
     funs(mean, sd, min, max), na.rm = TRUE
   )
 ```
+### Trimester at T1
+```{r}
+d %>% 
+  filter(timepoint == "T1", segment == 0) %>% 
+  count(phase) 
+```
+
 ### Weeks since conception and since birth
 ```{r}
 d %>% 
   group_by(timepoint) %>% 
   summarise_at(
     vars(seg_week),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+d %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(seg_week_cent_birth),
     funs(mean, sd, min, max), na.rm = TRUE
   )
 
@@ -576,8 +710,8 @@ dm <-
   ) %>% 
   distinct(ID, timepoint, .keep_all = TRUE) %>% 
   mutate(
-    T2_complete = if_else(timepoint == "T2", TRUE, FALSE),
-    T3_complete = if_else(timepoint == "T3", TRUE, FALSE)
+    T2_complete = if_else(timepoint == "C2", TRUE, FALSE),
+    T3_complete = if_else(timepoint == "C3", TRUE, FALSE)
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -625,8 +759,8 @@ do5_T1T2 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T1") |
-    (segment == 4 & timepoint == "T2") 
+    (segment == 0 & timepoint == "C1") |
+    (segment == 4 & timepoint == "C2") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -646,8 +780,8 @@ do5_T1T2 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T1,
-    distal = T2
+    proximal = C1,
+    distal = C2
   ) %>% 
   ungroup()
 ```
@@ -663,8 +797,8 @@ do5_T2T3 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T2") |
-    (segment == 4 & timepoint == "T3") 
+    (segment == 0 & timepoint == "C2") |
+    (segment == 4 & timepoint == "C3") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -684,8 +818,8 @@ do5_T2T3 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T2,
-    distal = T3
+    proximal = C2,
+    distal = C3
   ) %>% 
   ungroup()
 ```
@@ -701,8 +835,8 @@ do4_T1T2 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T1") |
-    (segment == 3 & timepoint == "T2") 
+    (segment == 0 & timepoint == "C1") |
+    (segment == 3 & timepoint == "C2") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -722,8 +856,8 @@ do4_T1T2 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T1,
-    distal = T2
+    proximal = C1,
+    distal = C2
   ) %>% 
   ungroup() 
 ```
@@ -814,6 +948,26 @@ mlm1 <- lmer(
 summary(mlm1)
 performance(mlm1)
 tab_model(mlm1)
+check_heteroscedasticity(mlm1)
+```
+
+### Sensitivity analysis using observations only from first 3-cm of hair 
+```{r}
+d3 <-
+  d %>% 
+  filter(segment <= 2)
+
+mlm1_3 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d3
+)
+
+summary(mlm1_3)
+performance(mlm1_3)
+tab_model(mlm1_3)
 ```
 
 ## Visualize piecewise model
@@ -961,6 +1115,8 @@ ggsave(
 ```
 
 ## Examine effect of psychosocial adversity
+
+### Main effects across peripartum period
 ```{r}
 mlm2 <- lmer(
   scale(hcc_log_m) ~ 
@@ -976,6 +1132,77 @@ summary(mlm2)
 performance(mlm2)
 tab_model(mlm2)
 ```
+
+### Effects on prenatal slope
+```{r}
+dpreg <-
+  d %>% 
+  filter(phase == "1st trimester" | phase == "2nd trimester" | phase == "3rd trimester") %>% 
+  group_by(ID) %>% 
+  mutate(
+    # mean cesd for each participant across timepoints
+    cesd_mu_preg = mean(cesd, na.rm = TRUE), 
+     # person-mean-centered cesd (deviations from mean)
+    cesd_pc_preg = if_else(
+      !is.na(cesd), cesd - cesd_mu, NA_real_
+    ),
+    crisys_mu_preg = mean(crisys, na.rm = TRUE),
+    crisys_pc_preg = if_else(
+      !is.na(crisys), crisys - crisys_mu, NA_real_
+    )
+  ) %>% 
+  ungroup()
+```
+
+```{r}
+mlm2preg <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) * scale(crisys_mu_preg, scale = FALSE) +
+    scale(seg_week_preg) * scale(crisys_pc_preg, scale = FALSE) +
+    (scale(seg_week_preg) + scale(segment) | ID),
+  data = dpreg
+)
+
+summary(mlm2preg)
+performance(mlm2preg)
+tab_model(mlm2preg)
+```
+
+### Effects on postnatal slope
+```{r}
+dpost <-
+  d %>% 
+  filter(phase == "3 mo. postpartum" | phase == "6 mo. postpartum") %>% 
+  group_by(ID) %>% 
+  mutate(
+    # mean cesd for each participant across timepoints
+    cesd_mu_post = mean(cesd, na.rm = TRUE), 
+     # person-mean-centered cesd (deviations from mean)
+    cesd_pc_post = if_else(
+      !is.na(cesd), cesd - cesd_mu, NA_real_
+    ),
+    crisys_mu_post = mean(crisys, na.rm = TRUE),
+    crisys_pc_post = if_else(
+      !is.na(crisys), crisys - crisys_mu, NA_real_
+    )
+  ) %>% 
+  ungroup()
+```
+
+```{r}
+mlm2post <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_post) * scale(crisys_mu_post, scale = FALSE) +
+    scale(seg_week_post) * scale(crisys_pc_post, scale = FALSE) +
+    (scale(seg_week_post) + scale(segment) | ID),
+  data = dpost
+)
+
+summary(mlm2post)
+performance(mlm2post)
+tab_model(mlm2post)
+```
+
 
 ## Visualize effect of psychosocial adversity
 
@@ -1063,6 +1290,8 @@ ggsave(
 
 
 ## Examine effect of despressive symptoms
+
+### Main effects across peripartum period
 ```{r}
 mlm3 <- lmer(
   hcc_log_m ~ 
@@ -1079,6 +1308,35 @@ performance(mlm3)
 tab_model(mlm3)
 ```
 
+### Effects on prenatal slope
+```{r}
+mlm3preg <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) * scale(cesd_mu_preg, scale = FALSE) +
+    scale(seg_week_preg) * scale(cesd_pc_preg, scale = FALSE) +
+    (scale(seg_week_preg) + scale(segment) | ID),
+  data = dpreg
+)
+
+summary(mlm3preg)
+performance(mlm3preg)
+tab_model(mlm3preg)
+```
+
+### Effects on postnatal slope
+```{r}
+mlm3post<- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_post) * scale(cesd_mu_post, scale = FALSE) +
+    scale(seg_week_post) * scale(cesd_pc_post, scale = FALSE) +
+    (scale(seg_week_post) + scale(segment) | ID),
+  data = dpost
+)
+
+summary(mlm3post)
+performance(mlm3post)
+tab_model(mlm3post)
+```
 
 ## Examine covariates
 
@@ -1234,8 +1492,13 @@ var_label(de) <-
     mom_latinx = "Self-reported Hispanic/Latinx ethnicity",
     annual_income_t1_txt = "Self-reported annual household income"
   )
-    
+
 metadata(de)$name <- "Analysed data for \"Hair cortisol concentration across the peripartum period: Documenting changes and associations with depressive symptoms and recent adversity\" (King et al. 2021)"
+
+# rio::export(
+#   de, 
+#   "~/Desktop/BABIES/hair_cortisol/king_etal_analyzed_data_20210929.rds"
+# )
 
 # write_csv(
 #   de,

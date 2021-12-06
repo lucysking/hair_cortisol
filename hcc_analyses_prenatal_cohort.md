@@ -15,6 +15,8 @@ Lucy King
         use](#remove-maternal-observations-contemporaneous-with-corticosteroid-use)
     -   [Final total number of participants and
         observations](#final-total-number-of-participants-and-observations)
+    -   [Visualization of sampling
+        approach](#visualization-of-sampling-approach)
     -   [Distributions](#distributions)
     -   [Internal consistency of CESD](#internal-consistency-of-cesd)
     -   [Demographics, means, SDs,
@@ -44,7 +46,7 @@ library(tidyverse)
     ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
 
     ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.4     ✓ dplyr   1.0.7
+    ## ✓ tibble  3.1.5     ✓ dplyr   1.0.7
     ## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
     ## ✓ readr   2.0.2     ✓ forcats 0.5.1
 
@@ -116,11 +118,13 @@ library(effectsize)
 library(sjPlot)
 ```
 
-    ## Learn more about sjPlot with 'browseVignettes("sjPlot")'.
+    ## Install package "strengejacke" from GitHub (`devtools::install_github("strengejacke/strengejacke")`) to load all sj-packages at once!
 
 ``` r
 library(sjmisc)
 ```
+
+    ## Learn more about sjmisc with 'browseVignettes("sjmisc")'.
 
     ## 
     ## Attaching package: 'sjmisc'
@@ -159,6 +163,40 @@ library(sjlabelled)
     ## The following object is masked from 'package:ggplot2':
     ## 
     ##     as_label
+
+``` r
+library(labelled)
+```
+
+    ## 
+    ## Attaching package: 'labelled'
+
+    ## The following objects are masked from 'package:sjlabelled':
+    ## 
+    ##     copy_labels, remove_labels, to_character, to_factor, val_labels
+
+    ## The following objects are masked from 'package:sjmisc':
+    ## 
+    ##     to_character, to_factor
+
+``` r
+library(codebook)
+```
+
+    ## 
+    ## Attaching package: 'codebook'
+
+    ## The following object is masked from 'package:labelled':
+    ## 
+    ##     to_factor
+
+    ## The following objects are masked from 'package:sjlabelled':
+    ## 
+    ##     as_factor, to_factor, val_labels
+
+    ## The following object is masked from 'package:sjmisc':
+    ## 
+    ##     to_factor
 
 ``` r
 # Files
@@ -308,6 +346,13 @@ d <-
     crisys_mu = mean(crisys, na.rm = TRUE),
     crisys_pc = if_else(
       !is.na(crisys), crisys - crisys_mu, NA_real_
+    ),
+    # relabel timepoint variable levels
+    timepoint = recode(
+      timepoint,
+      "T1" = "C1",
+      "T2" = "C2",
+      "T3" = "C3"
     )
   ) %>% 
   ungroup()
@@ -327,9 +372,9 @@ d %>%
     ## # A tibble: 3 × 2
     ##   timepoint     n
     ##   <chr>     <int>
-    ## 1 T1           84
-    ## 2 T2           52
-    ## 3 T3           31
+    ## 1 C1           84
+    ## 2 C2           52
+    ## 3 C3           31
 
 ## Remove maternal observations contemporaneous with corticosteroid use
 
@@ -346,13 +391,13 @@ d %>%
     ## # A tibble: 7 × 3
     ##   timepoint steroid_recent     n
     ##   <chr>              <dbl> <int>
-    ## 1 T1                     0    79
-    ## 2 T1                     1     2
-    ## 3 T1                    NA     4
-    ## 4 T2                     0    50
-    ## 5 T2                     1     2
-    ## 6 T3                     0    29
-    ## 7 T3                     1     2
+    ## 1 C1                     0    79
+    ## 2 C1                     1     2
+    ## 3 C1                    NA     4
+    ## 4 C2                     0    50
+    ## 5 C2                     1     2
+    ## 6 C3                     0    29
+    ## 7 C3                     1     2
 
 ``` r
 # number of observations
@@ -363,13 +408,13 @@ d %>%
     ## # A tibble: 7 × 3
     ##   timepoint steroid_recent     n
     ##   <chr>              <dbl> <int>
-    ## 1 T1                     0   382
-    ## 2 T1                     1    10
-    ## 3 T1                    NA    19
-    ## 4 T2                     0   250
-    ## 5 T2                     1    10
-    ## 6 T3                     0   138
-    ## 7 T3                     1    10
+    ## 1 C1                     0   382
+    ## 2 C1                     1    10
+    ## 3 C1                    NA    19
+    ## 4 C2                     0   250
+    ## 5 C2                     1    10
+    ## 6 C3                     0   138
+    ## 7 C3                     1    10
 
 ``` r
 d <-
@@ -427,9 +472,9 @@ d %>%
     ## # A tibble: 3 × 2
     ##   timepoint     n
     ##   <chr>     <int>
-    ## 1 T1           82
-    ## 2 T2           50
-    ## 3 T3           29
+    ## 1 C1           82
+    ## 2 C2           50
+    ## 3 C3           29
 
 ### n by timepoint
 
@@ -441,9 +486,9 @@ d %>%
     ## # A tibble: 3 × 2
     ##   timepoint     n
     ##   <chr>     <int>
-    ## 1 T1          396
-    ## 2 T2          249
-    ## 3 T3          138
+    ## 1 C1          396
+    ## 2 C2          249
+    ## 3 C3          138
 
 ### N across timpoints
 
@@ -456,11 +501,11 @@ d %>%
   select(-hcc_log_m) %>% 
   distinct(ID, timepoint, hcc) %>% 
   spread(timepoint, hcc) %>% 
-  count(T1, T2, T3)
+  count(C1, C2, C3)
 ```
 
     ## # A tibble: 6 × 4
-    ##   T1    T2    T3        n
+    ##   C1    C2    C3        n
     ##   <lgl> <lgl> <lgl> <int>
     ## 1 TRUE  TRUE  TRUE     20
     ## 2 TRUE  TRUE  NA       28
@@ -527,36 +572,145 @@ d %>%
     ## 4 3 mo. postpartum   113
     ## 5 6 mo. postpartum   112
 
-## Distributions
-
-### Weeks since conception
+## Visualization of sampling approach
 
 ``` r
-d %>% 
-  ggplot(aes(seg_week, fill = timepoint)) +
-  geom_density(alpha = 1/2) +
+d_timepoint <-
+  d %>% 
+  mutate(ID = as.factor(ID)) %>% 
+  select(
+    ID,
+    timepoint,
+    seg_week_cent_birth
+  ) %>% 
+  mutate(
+    seg_week_preg = if_else(
+      timepoint == "C1",
+      seg_week_cent_birth, NA_real_
+    )
+  )
+
+
+approach_p <-
+  d_timepoint %>% 
+  ggplot(
+    aes(
+      seg_week_cent_birth, 
+      fct_reorder2(ID,  seg_week_preg, seg_week_cent_birth, .desc = FALSE), 
+      color = timepoint
+    )
+  ) +
+  geom_point() +
+  geom_path() +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dotted",
+    size = 2
+  ) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  scale_color_manual(values = cbbPalette) +
   theme_hcc +
-  scale_x_continuous(breaks = seq.int(0, 65, 10)) +
-  scale_fill_manual(values = cbbPalette) +
   theme(
-    legend.position = "right"
+    legend.position = "right",
+    axis.text.y = element_blank()
   ) +
   labs(
-    fill = "Assessment\ntimepoint",
-    x = "Weeks since conception of fetus",
-    y = "Density of HCC observations"
+    color = "Hair collection\noccasion",
+    x = "Weeks from childbirth",
+    y = "Participant"
   )
+approach_p
 ```
 
 ![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 ggsave(
-  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_timepoint_density.png",
-  width = 9,
-  height = 7
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/collection_method.png",
+  width = 8,
+  height = 6
 )
 ```
+
+## Distributions
+
+### Weeks since conception
+
+``` r
+weeks_density_p <- 
+  d %>% 
+  ggplot(aes(seg_week_cent_birth, fill = timepoint)) +
+  geom_density(alpha = 1/2) +
+  geom_vline(
+    aes(xintercept = 0),
+    linetype = "dotted",
+    size = 2
+  ) +
+  scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  scale_fill_manual(values = cbbPalette) +
+  theme_hcc +
+  theme(
+    legend.position = "right"
+  ) +
+  labs(
+    fill = "Hair collection\noccasion",
+    x = "Weeks from childbirth",
+    y = "Density of HCC observations"
+  )
+weeks_density_p
+```
+
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+``` r
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_timepoint_density.png",
+  width = 8,
+  height = 6
+)
+```
+
+``` r
+ggarrange(
+  weeks_density_p, 
+  approach_p, 
+  nrow = 2, 
+  labels = c("A", "B"), 
+  hjust = -3,
+  font.label = list(size = 16)
+)
+```
+
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
+ggsave(
+  "~/Box/lucy_king_files/BABIES/hair_cortisol/plots/hcc_method_plots.png",
+  dpi = 600,
+  width = 10,
+  height = 12
+)
+```
+
+``` r
+d %>% 
+  ggplot(aes(seg_week_cent_birth)) +
+  geom_histogram() +
+  #scale_x_continuous(breaks = seq.int(-40, 28, 8), limits = c(-40, 28)) +
+  scale_fill_manual(values = cbbPalette) +
+  theme_hcc +
+  theme(
+    legend.position = "right"
+  ) +
+  labs(
+    fill = "Assessment\ntimepoint",
+    x = "Weeks from childbirth",
+    y = "Density of HCC observations"
+  ) +
+  facet_wrap(.~timepoint, scale = "free")
+```
+
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ### HCC in each phase
 
@@ -596,7 +750,7 @@ d %>%
   coord_flip()
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -620,7 +774,7 @@ d %>%
   facet_grid(.~timepoint)
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ### CRISYS scores at each timepoint
 
@@ -636,7 +790,7 @@ d %>%
   facet_grid(.~timepoint)
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 
 ## Internal consistency of CESD
 
@@ -953,6 +1107,46 @@ d %>%
     ## #   weeks_collect_t1_min <dbl>, weeks_collect_t2_min <dbl>,
     ## #   weeks_collect_t3_min <dbl>, infant_age_t2_min <dbl>, …
 
+### Segments
+
+``` r
+d %>% 
+  group_by(ID, timepoint) %>% 
+  count() %>% 
+  ungroup() %>% 
+  count(timepoint, (n == 5))
+```
+
+    ## # A tibble: 6 × 3
+    ##   timepoint `(n == 5)`     n
+    ##   <chr>     <lgl>      <int>
+    ## 1 C1        FALSE         11
+    ## 2 C1        TRUE          71
+    ## 3 C2        FALSE          1
+    ## 4 C2        TRUE          49
+    ## 5 C3        FALSE          3
+    ## 6 C3        TRUE          26
+
+``` r
+d %>% 
+  group_by(ID, timepoint) %>% 
+  count() %>% 
+  ungroup() %>% 
+  count(timepoint, n)
+```
+
+    ## # A tibble: 8 × 3
+    ##   timepoint     n    nn
+    ##   <chr>     <int> <int>
+    ## 1 C1            3     3
+    ## 2 C1            4     8
+    ## 3 C1            5    71
+    ## 4 C2            4     1
+    ## 5 C2            5    49
+    ## 6 C3            2     1
+    ## 7 C3            3     2
+    ## 8 C3            5    26
+
 ### HCC
 
 ``` r
@@ -967,9 +1161,9 @@ d %>%
     ## # A tibble: 3 × 5
     ##   timepoint  mean    sd   min   max
     ##   <chr>     <dbl> <dbl> <dbl> <dbl>
-    ## 1 T1         7.93 16.8   0.15 175. 
-    ## 2 T2         9.93 22.9   0.43 165. 
-    ## 3 T3         2.90  2.01  0.36   9.7
+    ## 1 C1         7.93 16.8   0.15 175. 
+    ## 2 C2         9.93 22.9   0.43 165. 
+    ## 3 C3         2.90  2.01  0.36   9.7
 
 ``` r
 d %>% 
@@ -1007,6 +1201,17 @@ d %>%
     ## 4 3 mo. postpartum 1.42  0.931 -1.02   4.98
     ## 5 6 mo. postpartum 0.833 0.727 -0.673  2.27
 
+### Trimester at T1
+
+``` r
+d %>% 
+  filter(timepoint == "T1", segment == 0) %>% 
+  count(phase) 
+```
+
+    ## # A tibble: 0 × 2
+    ## # … with 2 variables: phase <fct>, n <int>
+
 ### Weeks since conception and since birth
 
 ``` r
@@ -1021,9 +1226,25 @@ d %>%
     ## # A tibble: 3 × 5
     ##   timepoint  mean    sd    min   max
     ##   <chr>     <dbl> <dbl>  <dbl> <dbl>
-    ## 1 T1         16.4  7.85  0.143  37  
-    ## 2 T2         37.2  5.82 26.6    49.3
-    ## 3 T3         58.3  5.84 47.6    69.6
+    ## 1 C1         16.4  7.85  0.143  37  
+    ## 2 C2         37.2  5.82 26.6    49.3
+    ## 3 C3         58.3  5.84 47.6    69.6
+
+``` r
+d %>% 
+  group_by(timepoint) %>% 
+  summarise_at(
+    vars(seg_week_cent_birth),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+
+    ## # A tibble: 3 × 5
+    ##   timepoint   mean    sd    min   max
+    ##   <chr>      <dbl> <dbl>  <dbl> <dbl>
+    ## 1 C1        -22.9   7.93 -41.1  -2.44
+    ## 2 C2         -2.25  5.87 -12.7   9.57
+    ## 3 C3         18.7   5.85   7.14 29.6
 
 ``` r
 d %>% 
@@ -1072,13 +1293,13 @@ d %>%
     ## # A tibble: 7 × 3
     ##   timepoint hair_chemexp_past5mo     n
     ##   <chr>     <fct>                <int>
-    ## 1 T1        0                       61
-    ## 2 T1        1                       17
-    ## 3 T1        <NA>                     4
-    ## 4 T2        0                       37
-    ## 5 T2        1                       13
-    ## 6 T3        0                       20
-    ## 7 T3        1                        9
+    ## 1 C1        0                       61
+    ## 2 C1        1                       17
+    ## 3 C1        <NA>                     4
+    ## 4 C2        0                       37
+    ## 5 C2        1                       13
+    ## 6 C3        0                       20
+    ## 7 C3        1                        9
 
 ``` r
 d %>% 
@@ -1089,20 +1310,20 @@ d %>%
     ## # A tibble: 14 × 3
     ##    timepoint hair_wash_freq     n
     ##    <chr>              <dbl> <int>
-    ##  1 T1                     1     1
-    ##  2 T1                     2     9
-    ##  3 T1                     3    28
-    ##  4 T1                     4    13
-    ##  5 T1                    NA    31
-    ##  6 T2                     1     2
-    ##  7 T2                     2     7
-    ##  8 T2                     3    19
-    ##  9 T2                     4     4
-    ## 10 T2                    NA    18
-    ## 11 T3                     1     1
-    ## 12 T3                     2     6
-    ## 13 T3                     3    20
-    ## 14 T3                     4     2
+    ##  1 C1                     1     1
+    ##  2 C1                     2     9
+    ##  3 C1                     3    28
+    ##  4 C1                     4    13
+    ##  5 C1                    NA    31
+    ##  6 C2                     1     2
+    ##  7 C2                     2     7
+    ##  8 C2                     3    19
+    ##  9 C2                     4     4
+    ## 10 C2                    NA    18
+    ## 11 C3                     1     1
+    ## 12 C3                     2     6
+    ## 13 C3                     3    20
+    ## 14 C3                     4     2
 
 ``` r
 d %>% 
@@ -1140,9 +1361,9 @@ d %>%
     ## # A tibble: 3 × 3
     ##   timepoint `!is.na(cesd)`     n
     ##   <chr>     <lgl>          <int>
-    ## 1 T1        TRUE              82
-    ## 2 T2        TRUE              50
-    ## 3 T3        TRUE              29
+    ## 1 C1        TRUE              82
+    ## 2 C2        TRUE              50
+    ## 3 C3        TRUE              29
 
 ``` r
 d %>% 
@@ -1157,9 +1378,9 @@ d %>%
     ## # A tibble: 3 × 5
     ##   timepoint  mean    sd   min   max
     ##   <chr>     <dbl> <dbl> <dbl> <dbl>
-    ## 1 T1        10.1   8.15     0    35
-    ## 2 T2         9.54  6.32     0    23
-    ## 3 T3         9.90  9.22     0    31
+    ## 1 C1        10.1   8.15     0    35
+    ## 2 C2         9.54  6.32     0    23
+    ## 3 C3         9.90  9.22     0    31
 
 ``` r
 d %>% 
@@ -1170,12 +1391,12 @@ d %>%
     ## # A tibble: 6 × 3
     ##   timepoint `cesd >= 16`     n
     ##   <chr>     <lgl>        <int>
-    ## 1 T1        FALSE           66
-    ## 2 T1        TRUE            16
-    ## 3 T2        FALSE           39
-    ## 4 T2        TRUE            11
-    ## 5 T3        FALSE           23
-    ## 6 T3        TRUE             6
+    ## 1 C1        FALSE           66
+    ## 2 C1        TRUE            16
+    ## 3 C2        FALSE           39
+    ## 4 C2        TRUE            11
+    ## 5 C3        FALSE           23
+    ## 6 C3        TRUE             6
 
 ### CRISYS scores
 
@@ -1188,10 +1409,10 @@ d %>%
     ## # A tibble: 4 × 3
     ##   timepoint `!is.na(crisys)`     n
     ##   <chr>     <lgl>            <int>
-    ## 1 T1        FALSE                2
-    ## 2 T1        TRUE                80
-    ## 3 T2        TRUE                50
-    ## 4 T3        TRUE                29
+    ## 1 C1        FALSE                2
+    ## 2 C1        TRUE                80
+    ## 3 C2        TRUE                50
+    ## 4 C3        TRUE                29
 
 ``` r
 d %>% 
@@ -1206,9 +1427,9 @@ d %>%
     ## # A tibble: 3 × 5
     ##   timepoint  mean    sd   min   max
     ##   <chr>     <dbl> <dbl> <dbl> <dbl>
-    ## 1 T1         5.53  3.88     0    24
-    ## 2 T2         5.19  4.67     0    24
-    ## 3 T3         5.63  3.78     0    16
+    ## 1 C1         5.53  3.88     0    24
+    ## 2 C2         5.19  4.67     0    24
+    ## 3 C3         5.63  3.78     0    16
 
 ### Race/ethnicity
 
@@ -1275,8 +1496,8 @@ dm <-
   ) %>% 
   distinct(ID, timepoint, .keep_all = TRUE) %>% 
   mutate(
-    T2_complete = if_else(timepoint == "T2", TRUE, FALSE),
-    T3_complete = if_else(timepoint == "T3", TRUE, FALSE)
+    T2_complete = if_else(timepoint == "C2", TRUE, FALSE),
+    T3_complete = if_else(timepoint == "C3", TRUE, FALSE)
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -1291,257 +1512,257 @@ dm <-
 t.test(dm$mom_age_t1 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$mom_age_t1 by dm$T2_complete
-    ## t = -0.2968, df = 69.528, p-value = 0.7675
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.589270  1.918522
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        32.45213        32.78751
+
+        Welch Two Sample t-test
+
+    data:  dm$mom_age_t1 by dm$T2_complete
+    t = -0.2968, df = 69.528, p-value = 0.7675
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.589270  1.918522
+    sample estimates:
+    mean in group 0 mean in group 1 
+           32.45213        32.78751 
 
 ``` r
 t.test(dm$gestational_weeks_birth ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$gestational_weeks_birth by dm$T2_complete
-    ## t = -1.0832, df = 26.055, p-value = 0.2886
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -1.4211139  0.4401615
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        38.95238        39.44286
+
+        Welch Two Sample t-test
+
+    data:  dm$gestational_weeks_birth by dm$T2_complete
+    t = -1.0832, df = 26.055, p-value = 0.2886
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -1.4211139  0.4401615
+    sample estimates:
+    mean in group 0 mean in group 1 
+           38.95238        39.44286 
 
 ``` r
 t.test(dm$cesd_t1 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t1 by dm$T2_complete
-    ## t = -0.68033, df = 75.84, p-value = 0.4984
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -4.857433  2.383963
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        9.457143       10.693878
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t1 by dm$T2_complete
+    t = -0.68033, df = 75.84, p-value = 0.4984
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -4.857433  2.383963
+    sample estimates:
+    mean in group 0 mean in group 1 
+           9.457143       10.693878 
 
 ``` r
 t.test(dm$cesd_t2 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t2 by dm$T2_complete
-    ## t = 0.050094, df = 14.294, p-value = 0.9607
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -5.286120  5.539453
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        9.666667        9.540000
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t2 by dm$T2_complete
+    t = 0.050094, df = 14.294, p-value = 0.9607
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -5.286120  5.539453
+    sample estimates:
+    mean in group 0 mean in group 1 
+           9.666667        9.540000 
 
 ``` r
 t.test(dm$cesd_t3 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t3 by dm$T2_complete
-    ## t = 0.16151, df = 25.209, p-value = 0.873
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -5.831342  6.824199
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        11.57143        11.07500
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t3 by dm$T2_complete
+    t = 0.16151, df = 25.209, p-value = 0.873
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -5.831342  6.824199
+    sample estimates:
+    mean in group 0 mean in group 1 
+           11.57143        11.07500 
 
 ``` r
 t.test(dm$crisys_total_T1 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T1 by dm$T2_complete
-    ## t = -0.51828, df = 78.474, p-value = 0.6057
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.106107  1.235977
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        5.198444        5.633509
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T1 by dm$T2_complete
+    t = -0.51828, df = 78.474, p-value = 0.6057
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.106107  1.235977
+    sample estimates:
+    mean in group 0 mean in group 1 
+           5.198444        5.633509 
 
 ``` r
 t.test(dm$crisys_total_T2 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T2 by dm$T2_complete
-    ## t = 0.25191, df = 36.376, p-value = 0.8025
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -1.697961  2.179792
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        5.434500        5.193585
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T2 by dm$T2_complete
+    t = 0.25191, df = 36.376, p-value = 0.8025
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -1.697961  2.179792
+    sample estimates:
+    mean in group 0 mean in group 1 
+           5.434500        5.193585 
 
 ``` r
 t.test(dm$crisys_total_T3 ~ dm$T2_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T3 by dm$T2_complete
-    ## t = -1.1986, df = 26.093, p-value = 0.2415
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -3.886141  1.023027
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        4.355499        5.787055
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T3 by dm$T2_complete
+    t = -1.1986, df = 26.093, p-value = 0.2415
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -3.886141  1.023027
+    sample estimates:
+    mean in group 0 mean in group 1 
+           4.355499        5.787055 
 
 ``` r
 t.test(dm$mom_age_t1 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$mom_age_t1 by dm$T3_complete
-    ## t = -0.20776, df = 62.438, p-value = 0.8361
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.465596  2.001283
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        32.57021        32.80236
+
+        Welch Two Sample t-test
+
+    data:  dm$mom_age_t1 by dm$T3_complete
+    t = -0.20776, df = 62.438, p-value = 0.8361
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.465596  2.001283
+    sample estimates:
+    mean in group 0 mean in group 1 
+           32.57021        32.80236 
 
 ``` r
 t.test(dm$gestational_weeks_birth ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$gestational_weeks_birth by dm$T3_complete
-    ## t = -1.8681, df = 66.64, p-value = 0.06615
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -1.26696236  0.04200341
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        39.04762        39.66010
+
+        Welch Two Sample t-test
+
+    data:  dm$gestational_weeks_birth by dm$T3_complete
+    t = -1.8681, df = 66.64, p-value = 0.06615
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -1.26696236  0.04200341
+    sample estimates:
+    mean in group 0 mean in group 1 
+           39.04762        39.66010 
 
 ``` r
 t.test(dm$cesd_t1 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t1 by dm$T3_complete
-    ## t = 0.62547, df = 56.941, p-value = 0.5342
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.594772  4.951915
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##       10.571429        9.392857
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t1 by dm$T3_complete
+    t = 0.62547, df = 56.941, p-value = 0.5342
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.594772  4.951915
+    sample estimates:
+    mean in group 0 mean in group 1 
+          10.571429        9.392857 
 
 ``` r
 t.test(dm$cesd_t2 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t2 by dm$T3_complete
-    ## t = 1.6086, df = 54.515, p-value = 0.1135
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -0.6616352  6.0389325
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        10.64865         7.96000
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t2 by dm$T3_complete
+    t = 1.6086, df = 54.515, p-value = 0.1135
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -0.6616352  6.0389325
+    sample estimates:
+    mean in group 0 mean in group 1 
+           10.64865         7.96000 
 
 ``` r
 t.test(dm$cesd_t3 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$cesd_t3 by dm$T3_complete
-    ## t = 0.98333, df = 45.816, p-value = 0.3306
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.956847  8.603744
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##       12.720000        9.896552
+
+        Welch Two Sample t-test
+
+    data:  dm$cesd_t3 by dm$T3_complete
+    t = 0.98333, df = 45.816, p-value = 0.3306
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.956847  8.603744
+    sample estimates:
+    mean in group 0 mean in group 1 
+          12.720000        9.896552 
 
 ``` r
 t.test(dm$crisys_total_T1 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T1 by dm$T3_complete
-    ## t = -1.1934, df = 44.971, p-value = 0.239
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -3.0949247  0.7919276
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        5.059922        6.211420
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T1 by dm$T3_complete
+    t = -1.1934, df = 44.971, p-value = 0.239
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -3.0949247  0.7919276
+    sample estimates:
+    mean in group 0 mean in group 1 
+           5.059922        6.211420 
 
 ``` r
 t.test(dm$crisys_total_T2 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T2 by dm$T3_complete
-    ## t = -0.80898, df = 55.887, p-value = 0.422
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -3.066281  1.302214
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        4.879283        5.761317
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T2 by dm$T3_complete
+    t = -0.80898, df = 55.887, p-value = 0.422
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -3.066281  1.302214
+    sample estimates:
+    mean in group 0 mean in group 1 
+           4.879283        5.761317 
 
 ``` r
 t.test(dm$crisys_total_T3 ~ dm$T3_complete)
 ```
 
-    ## 
-    ##  Welch Two Sample t-test
-    ## 
-    ## data:  dm$crisys_total_T3 by dm$T3_complete
-    ## t = -0.4299, df = 45.006, p-value = 0.6693
-    ## alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
-    ## 95 percent confidence interval:
-    ##  -2.832256  1.835867
-    ## sample estimates:
-    ## mean in group 0 mean in group 1 
-    ##        5.136312        5.634506
+
+        Welch Two Sample t-test
+
+    data:  dm$crisys_total_T3 by dm$T3_complete
+    t = -0.4299, df = 45.006, p-value = 0.6693
+    alternative hypothesis: true difference in means between group 0 and group 1 is not equal to 0
+    95 percent confidence interval:
+     -2.832256  1.835867
+    sample estimates:
+    mean in group 0 mean in group 1 
+           5.136312        5.634506 
 
 # Results
 
@@ -1558,8 +1779,8 @@ do5_T1T2 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T1") |
-    (segment == 4 & timepoint == "T2") 
+    (segment == 0 & timepoint == "C1") |
+    (segment == 4 & timepoint == "C2") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -1579,8 +1800,8 @@ do5_T1T2 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T1,
-    distal = T2
+    proximal = C1,
+    distal = C2
   ) %>% 
   ungroup()
 ```
@@ -1596,8 +1817,8 @@ do5_T2T3 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T2") |
-    (segment == 4 & timepoint == "T3") 
+    (segment == 0 & timepoint == "C2") |
+    (segment == 4 & timepoint == "C3") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -1617,8 +1838,8 @@ do5_T2T3 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T2,
-    distal = T3
+    proximal = C2,
+    distal = C3
   ) %>% 
   ungroup()
 ```
@@ -1634,8 +1855,8 @@ do4_T1T2 <-
     seg_week
   ) %>% 
   filter(
-    (segment == 0 & timepoint == "T1") |
-    (segment == 3 & timepoint == "T2") 
+    (segment == 0 & timepoint == "C1") |
+    (segment == 3 & timepoint == "C2") 
   ) %>% 
   group_by(ID) %>% 
   mutate(
@@ -1655,8 +1876,8 @@ do4_T1T2 <-
   select(ID, timepoint, hcc_m) %>% 
   spread(timepoint, hcc_m) %>% 
   rename(
-    proximal = T1,
-    distal = T2
+    proximal = C1,
+    distal = C2
   ) %>% 
   ungroup() 
 ```
@@ -1724,33 +1945,33 @@ do %>%
 cor.test(do$proximal, do$distal)
 ```
 
-    ## 
-    ##  Pearson's product-moment correlation
-    ## 
-    ## data:  do$proximal and do$distal
-    ## t = 16.984, df = 28, p-value = 0.000000000000000281
-    ## alternative hypothesis: true correlation is not equal to 0
-    ## 95 percent confidence interval:
-    ##  0.9061503 0.9784550
-    ## sample estimates:
-    ##       cor 
-    ## 0.9547377
+
+        Pearson's product-moment correlation
+
+    data:  do$proximal and do$distal
+    t = 16.984, df = 28, p-value = 0.000000000000000281
+    alternative hypothesis: true correlation is not equal to 0
+    95 percent confidence interval:
+     0.9061503 0.9784550
+    sample estimates:
+          cor 
+    0.9547377 
 
 ``` r
 t.test(do$proximal, do$distal, paired = TRUE)
 ```
 
-    ## 
-    ##  Paired t-test
-    ## 
-    ## data:  do$proximal and do$distal
-    ## t = 3.7828, df = 29, p-value = 0.0007191
-    ## alternative hypothesis: true difference in means is not equal to 0
-    ## 95 percent confidence interval:
-    ##  2.178480 7.306854
-    ## sample estimates:
-    ## mean of the differences 
-    ##                4.742667
+
+        Paired t-test
+
+    data:  do$proximal and do$distal
+    t = 3.7828, df = 29, p-value = 0.0007191
+    alternative hypothesis: true difference in means is not equal to 0
+    95 percent confidence interval:
+     2.178480 7.306854
+    sample estimates:
+    mean of the differences 
+                   4.742667 
 
 ``` r
 do  %>% 
@@ -1764,7 +1985,7 @@ do  %>%
   )
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-39-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -1794,7 +2015,7 @@ do  %>%
   )
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-40-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -1803,22 +2024,6 @@ ggsave(
   height = 5
 )
 ```
-
-``` r
-d3 <-
-  d %>% 
-  filter(segment < 4)
-
-d3 %>% 
-  distinct(ID, timepoint) %>% count(timepoint)
-```
-
-    ## # A tibble: 3 × 2
-    ##   timepoint     n
-    ##   <chr>     <int>
-    ## 1 T1           82
-    ## 2 T2           50
-    ## 3 T3           29
 
 ## Fit piecewise linear mixed model of HCC, covarying for segment as a random effect
 
@@ -2042,6 +2247,235 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </tr>
 </table>
 
+``` r
+check_heteroscedasticity(mlm1)
+```
+
+    ## OK: Error variance appears to be homoscedastic (p = 0.767).
+
+### Sensitivity analysis using observations only from first 3-cm of hair
+
+``` r
+d3 <-
+  d %>% 
+  filter(segment <= 2)
+
+mlm1_3 <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) +
+    scale(seg_week_post) +
+    (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) | ID),
+  data = d3
+)
+
+summary(mlm1_3)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: scale(hcc_log_m) ~ scale(seg_week_preg) + scale(seg_week_post) +  
+    ##     (scale(seg_week_preg) + scale(seg_week_post) + scale(segment) |  
+    ##         ID)
+    ##    Data: d3
+    ## 
+    ## REML criterion at convergence: 825.8
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -3.5435 -0.3647  0.0025  0.3838  3.1390 
+    ## 
+    ## Random effects:
+    ##  Groups   Name                 Variance Std.Dev. Corr             
+    ##  ID       (Intercept)          0.66336  0.8145                    
+    ##           scale(seg_week_preg) 0.17416  0.4173   -0.31            
+    ##           scale(seg_week_post) 0.09482  0.3079    0.04 -0.07      
+    ##           scale(segment)       0.04579  0.2140    0.14  0.52  0.58
+    ##  Residual                      0.10177  0.3190                    
+    ## Number of obs: 482, groups:  ID, 85
+    ## 
+    ## Fixed effects:
+    ##                      Estimate Std. Error       df t value  Pr(>|t|)    
+    ## (Intercept)           0.06670    0.09219 82.62520   0.723   0.47142    
+    ## scale(seg_week_preg)  0.15066    0.05092 75.55199   2.959   0.00413 ** 
+    ## scale(seg_week_post) -0.21525    0.04828 42.73172  -4.458 0.0000589 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##               (Intr) scl(sg_wk_pr)
+    ## scl(sg_wk_pr) -0.280              
+    ## scl(sg_wk_ps)  0.044 -0.462
+
+``` r
+performance(mlm1_3)
+```
+
+    ## # Indices of model performance
+    ## 
+    ## AIC     |     BIC | R2 (cond.) | R2 (marg.) |   ICC |  RMSE | Sigma
+    ## -------------------------------------------------------------------
+    ## 853.841 | 912.332 |      0.904 |      0.032 | 0.901 | 0.246 | 0.319
+
+``` r
+tab_model(mlm1_3)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+scale(hcc log m)
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.07
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.11 – 0.25
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.469
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.15
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.05 – 0.25
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.003</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.22
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.31 – -0.12
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.10
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.66
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_preg)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.17
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_post)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.09
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(segment)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.05
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+-0.31
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.04
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.14
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ICC
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.90
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+85
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+482
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.032 / 0.904
+</td>
+</tr>
+</table>
+
 ## Visualize piecewise model
 
 ### Extract predicted values and SEs
@@ -2134,7 +2568,7 @@ pred_mlm1 %>%
   )
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-44-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-49-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -2186,7 +2620,7 @@ pred_mlm1 %>%
   )
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-45-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -2197,6 +2631,8 @@ ggsave(
 ```
 
 ## Examine effect of psychosocial adversity
+
+### Main effects across peripartum period
 
 ``` r
 mlm2 <- lmer(
@@ -2455,6 +2891,604 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </tr>
 </table>
 
+### Effects on prenatal slope
+
+``` r
+dpreg <-
+  d %>% 
+  filter(phase == "1st trimester" | phase == "2nd trimester" | phase == "3rd trimester") %>% 
+  group_by(ID) %>% 
+  mutate(
+    # mean cesd for each participant across timepoints
+    cesd_mu_preg = mean(cesd, na.rm = TRUE), 
+     # person-mean-centered cesd (deviations from mean)
+    cesd_pc_preg = if_else(
+      !is.na(cesd), cesd - cesd_mu, NA_real_
+    ),
+    crisys_mu_preg = mean(crisys, na.rm = TRUE),
+    crisys_pc_preg = if_else(
+      !is.na(crisys), crisys - crisys_mu, NA_real_
+    )
+  ) %>% 
+  ungroup()
+```
+
+``` r
+mlm2preg <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) * scale(crisys_mu_preg, scale = FALSE) +
+    scale(seg_week_preg) * scale(crisys_pc_preg, scale = FALSE) +
+    (scale(seg_week_preg) + scale(segment) | ID),
+  data = dpreg
+)
+
+summary(mlm2preg)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: scale(hcc_log_m) ~ scale(seg_week_preg) * scale(crisys_mu_preg,  
+    ##     scale = FALSE) + scale(seg_week_preg) * scale(crisys_pc_preg,  
+    ##     scale = FALSE) + (scale(seg_week_preg) + scale(segment) |      ID)
+    ##    Data: dpreg
+    ## 
+    ## REML criterion at convergence: 794.3
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -4.4078 -0.3591  0.0350  0.3913  3.1891 
+    ## 
+    ## Random effects:
+    ##  Groups   Name                 Variance Std.Dev. Corr       
+    ##  ID       (Intercept)          0.71036  0.8428              
+    ##           scale(seg_week_preg) 0.14926  0.3863   -0.32      
+    ##           scale(segment)       0.07943  0.2818    0.15  0.73
+    ##  Residual                      0.09057  0.3009              
+    ## Number of obs: 548, groups:  ID, 83
+    ## 
+    ## Fixed effects:
+    ##                                                             Estimate Std. Error
+    ## (Intercept)                                                 0.050334   0.094472
+    ## scale(seg_week_preg)                                        0.202122   0.037475
+    ## scale(crisys_mu_preg, scale = FALSE)                        0.030833   0.025489
+    ## scale(crisys_pc_preg, scale = FALSE)                        0.025330   0.034549
+    ## scale(seg_week_preg):scale(crisys_mu_preg, scale = FALSE)  -0.003380   0.009893
+    ## scale(seg_week_preg):scale(crisys_pc_preg, scale = FALSE)  -0.029999   0.020887
+    ##                                                                   df t value
+    ## (Intercept)                                                80.739999   0.533
+    ## scale(seg_week_preg)                                       82.243721   5.394
+    ## scale(crisys_mu_preg, scale = FALSE)                       80.824775   1.210
+    ## scale(crisys_pc_preg, scale = FALSE)                       56.150980   0.733
+    ## scale(seg_week_preg):scale(crisys_mu_preg, scale = FALSE)  79.026993  -0.342
+    ## scale(seg_week_preg):scale(crisys_pc_preg, scale = FALSE) 456.661928  -1.436
+    ##                                                              Pr(>|t|)    
+    ## (Intercept)                                                     0.596    
+    ## scale(seg_week_preg)                                      0.000000649 ***
+    ## scale(crisys_mu_preg, scale = FALSE)                            0.230    
+    ## scale(crisys_pc_preg, scale = FALSE)                            0.467    
+    ## scale(seg_week_preg):scale(crisys_mu_preg, scale = FALSE)       0.734    
+    ## scale(seg_week_preg):scale(crisys_pc_preg, scale = FALSE)       0.152    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##                                      (Intr) sc(__) scl(crsys_m_,s=FALSE)
+    ## scl(sg_wk_)                          -0.467                             
+    ## scl(crsys_m_,s=FALSE)                 0.000  0.014                      
+    ## scl(crsys_p_,s=FALSE)                -0.017  0.091 -0.053               
+    ## scl(sg_wk_prg):scl(crsys_m_,s=FALSE)  0.017 -0.021 -0.474               
+    ## scl(sg_wk_prg):scl(crsys_p_,s=FALSE)  0.030 -0.023 -0.026               
+    ##                                      scl(crsys_p_,s=FALSE)
+    ## scl(sg_wk_)                                               
+    ## scl(crsys_m_,s=FALSE)                                     
+    ## scl(crsys_p_,s=FALSE)                                     
+    ## scl(sg_wk_prg):scl(crsys_m_,s=FALSE) -0.009               
+    ## scl(sg_wk_prg):scl(crsys_p_,s=FALSE) -0.260               
+    ##                                      scl(sg_wk_prg):scl(crsys_m_,s=FALSE)
+    ## scl(sg_wk_)                                                              
+    ## scl(crsys_m_,s=FALSE)                                                    
+    ## scl(crsys_p_,s=FALSE)                                                    
+    ## scl(sg_wk_prg):scl(crsys_m_,s=FALSE)                                     
+    ## scl(sg_wk_prg):scl(crsys_p_,s=FALSE) -0.050
+
+``` r
+performance(mlm2preg)
+```
+
+    ## # Indices of model performance
+    ## 
+    ## AIC     |     BIC | R2 (cond.) | R2 (marg.) |   ICC |  RMSE | Sigma
+    ## -------------------------------------------------------------------
+    ## 820.319 | 876.301 |      0.910 |      0.053 | 0.905 | 0.248 | 0.301
+
+``` r
+tab_model(mlm2preg)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+scale(hcc log m)
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.05
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.13 – 0.24
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.594
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.20
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.13 – 0.28
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+crisys\_mu\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.02 – 0.08
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.226
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+crisys\_pc\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.04 – 0.09
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.463
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg \*<br>crisys\_mu\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.02 – 0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.733
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg \*<br>crisys\_pc\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.07 – 0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.151
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.09
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.71
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_preg)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.15
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(segment)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.08
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+-0.32
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.15
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ICC
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.90
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+83
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+548
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.053 / 0.910
+</td>
+</tr>
+</table>
+
+### Effects on postnatal slope
+
+``` r
+dpost <-
+  d %>% 
+  filter(phase == "3 mo. postpartum" | phase == "6 mo. postpartum") %>% 
+  group_by(ID) %>% 
+  mutate(
+    # mean cesd for each participant across timepoints
+    cesd_mu_post = mean(cesd, na.rm = TRUE), 
+     # person-mean-centered cesd (deviations from mean)
+    cesd_pc_post = if_else(
+      !is.na(cesd), cesd - cesd_mu, NA_real_
+    ),
+    crisys_mu_post = mean(crisys, na.rm = TRUE),
+    crisys_pc_post = if_else(
+      !is.na(crisys), crisys - crisys_mu, NA_real_
+    )
+  ) %>% 
+  ungroup()
+```
+
+``` r
+mlm2post <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_post) * scale(crisys_mu_post, scale = FALSE) +
+    scale(seg_week_post) * scale(crisys_pc_post, scale = FALSE) +
+    (scale(seg_week_post) + scale(segment) | ID),
+  data = dpost
+)
+
+summary(mlm2post)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: scale(hcc_log_m) ~ scale(seg_week_post) * scale(crisys_mu_post,  
+    ##     scale = FALSE) + scale(seg_week_post) * scale(crisys_pc_post,  
+    ##     scale = FALSE) + (scale(seg_week_post) + scale(segment) |      ID)
+    ##    Data: dpost
+    ## 
+    ## REML criterion at convergence: 372.5
+    ## 
+    ## Scaled residuals: 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -2.27596 -0.37554  0.04586  0.38116  2.45215 
+    ## 
+    ## Random effects:
+    ##  Groups   Name                 Variance Std.Dev. Corr     
+    ##  ID       (Intercept)          0.64218  0.8014            
+    ##           scale(seg_week_post) 0.22178  0.4709   0.16     
+    ##           scale(segment)       0.22350  0.4728   0.38 0.83
+    ##  Residual                      0.05959  0.2441            
+    ## Number of obs: 225, groups:  ID, 57
+    ## 
+    ## Fixed effects:
+    ##                                                            Estimate Std. Error
+    ## (Intercept)                                                0.257280   0.112199
+    ## scale(seg_week_post)                                      -0.078614   0.049780
+    ## scale(crisys_mu_post, scale = FALSE)                      -0.012198   0.028105
+    ## scale(crisys_pc_post, scale = FALSE)                       0.008578   0.054477
+    ## scale(seg_week_post):scale(crisys_mu_post, scale = FALSE)  0.002227   0.012867
+    ## scale(seg_week_post):scale(crisys_pc_post, scale = FALSE)  0.043593   0.027863
+    ##                                                                  df t value
+    ## (Intercept)                                               34.039088   2.293
+    ## scale(seg_week_post)                                      35.492432  -1.579
+    ## scale(crisys_mu_post, scale = FALSE)                      41.388405  -0.434
+    ## scale(crisys_pc_post, scale = FALSE)                      21.487559   0.157
+    ## scale(seg_week_post):scale(crisys_mu_post, scale = FALSE) 36.729146   0.173
+    ## scale(seg_week_post):scale(crisys_pc_post, scale = FALSE) 63.461046   1.565
+    ##                                                           Pr(>|t|)  
+    ## (Intercept)                                                 0.0281 *
+    ## scale(seg_week_post)                                        0.1232  
+    ## scale(crisys_mu_post, scale = FALSE)                        0.6665  
+    ## scale(crisys_pc_post, scale = FALSE)                        0.8764  
+    ## scale(seg_week_post):scale(crisys_mu_post, scale = FALSE)   0.8635  
+    ## scale(seg_week_post):scale(crisys_pc_post, scale = FALSE)   0.1227  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##                                      (Intr) sc(__) scl(crsys_m_,s=FALSE)
+    ## scl(sg_wk_)                          -0.086                             
+    ## scl(crsys_m_,s=FALSE)                 0.043 -0.036                      
+    ## scl(crsys_p_,s=FALSE)                 0.012  0.005 -0.248               
+    ## scl(sg_wk_pst):scl(crsys_m_,s=FALSE) -0.033  0.000  0.023               
+    ## scl(sg_wk_pst):scl(crsys_p_,s=FALSE)  0.013  0.005  0.103               
+    ##                                      scl(crsys_p_,s=FALSE)
+    ## scl(sg_wk_)                                               
+    ## scl(crsys_m_,s=FALSE)                                     
+    ## scl(crsys_p_,s=FALSE)                                     
+    ## scl(sg_wk_pst):scl(crsys_m_,s=FALSE)  0.061               
+    ## scl(sg_wk_pst):scl(crsys_p_,s=FALSE) -0.133               
+    ##                                      scl(sg_wk_pst):scl(crsys_m_,s=FALSE)
+    ## scl(sg_wk_)                                                              
+    ## scl(crsys_m_,s=FALSE)                                                    
+    ## scl(crsys_p_,s=FALSE)                                                    
+    ## scl(sg_wk_pst):scl(crsys_m_,s=FALSE)                                     
+    ## scl(sg_wk_pst):scl(crsys_p_,s=FALSE) -0.185
+
+``` r
+performance(mlm2post)
+```
+
+    ## # Indices of model performance
+    ## 
+    ## AIC     |     BIC | R2 (cond.) | R2 (marg.) |   ICC |  RMSE | Sigma
+    ## -------------------------------------------------------------------
+    ## 398.451 | 442.861 |      0.937 |      0.018 | 0.935 | 0.177 | 0.244
+
+``` r
+tab_model(mlm2post)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+scale(hcc log m)
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.26
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04 – 0.48
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.022</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.08
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.18 – 0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.114
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+crisys\_mu\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.07 – 0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.664
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+crisys\_pc\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.10 – 0.12
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.875
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post \*<br>crisys\_mu\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.02 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.863
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post \*<br>crisys\_pc\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.01 – 0.10
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.118
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.06
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.64
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_post)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.22
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(segment)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.22
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.16
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.38
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ICC
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.94
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+57
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+225
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.018 / 0.937
+</td>
+</tr>
+</table>
+
 ## Visualize effect of psychosocial adversity
 
 ### Extract predicted values and SEs
@@ -2534,7 +3568,7 @@ pred_mlm2 %>%
   )
 ```
 
-![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-48-1.png)<!-- -->
+![](hcc_analyses_prenatal_cohort_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
 
 ``` r
 ggsave(
@@ -2545,6 +3579,8 @@ ggsave(
 ```
 
 ## Examine effect of despressive symptoms
+
+### Main effects across peripartum period
 
 ``` r
 mlm3 <- lmer(
@@ -2800,6 +3836,564 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
 0.041 / 0.904
+</td>
+</tr>
+</table>
+
+### Effects on prenatal slope
+
+``` r
+mlm3preg <- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_preg) * scale(cesd_mu_preg, scale = FALSE) +
+    scale(seg_week_preg) * scale(cesd_pc_preg, scale = FALSE) +
+    (scale(seg_week_preg) + scale(segment) | ID),
+  data = dpreg
+)
+
+summary(mlm3preg)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: scale(hcc_log_m) ~ scale(seg_week_preg) * scale(cesd_mu_preg,  
+    ##     scale = FALSE) + scale(seg_week_preg) * scale(cesd_pc_preg,  
+    ##     scale = FALSE) + (scale(seg_week_preg) + scale(segment) |      ID)
+    ##    Data: dpreg
+    ## 
+    ## REML criterion at convergence: 810
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -4.4273 -0.3635  0.0421  0.3978  3.2195 
+    ## 
+    ## Random effects:
+    ##  Groups   Name                 Variance Std.Dev. Corr       
+    ##  ID       (Intercept)          0.74874  0.8653              
+    ##           scale(seg_week_preg) 0.17103  0.4136   -0.38      
+    ##           scale(segment)       0.08442  0.2905    0.07  0.77
+    ##  Residual                      0.08896  0.2983              
+    ## Number of obs: 558, groups:  ID, 84
+    ## 
+    ## Fixed effects:
+    ##                                                            Estimate  Std. Error
+    ## (Intercept)                                               0.0661568   0.0970446
+    ## scale(seg_week_preg)                                      0.1977599   0.0368582
+    ## scale(cesd_mu_preg, scale = FALSE)                        0.0006574   0.0137566
+    ## scale(cesd_pc_preg, scale = FALSE)                        0.0033275   0.0157611
+    ## scale(seg_week_preg):scale(cesd_mu_preg, scale = FALSE)   0.0099828   0.0053192
+    ## scale(seg_week_preg):scale(cesd_pc_preg, scale = FALSE)   0.0177832   0.0095437
+    ##                                                                  df t value
+    ## (Intercept)                                              82.8993022   0.682
+    ## scale(seg_week_preg)                                     85.7577156   5.365
+    ## scale(cesd_mu_preg, scale = FALSE)                       84.6330485   0.048
+    ## scale(cesd_pc_preg, scale = FALSE)                       77.5271042   0.211
+    ## scale(seg_week_preg):scale(cesd_mu_preg, scale = FALSE)  92.8122277   1.877
+    ## scale(seg_week_preg):scale(cesd_pc_preg, scale = FALSE) 444.6180328   1.863
+    ##                                                            Pr(>|t|)    
+    ## (Intercept)                                                  0.4973    
+    ## scale(seg_week_preg)                                    0.000000676 ***
+    ## scale(cesd_mu_preg, scale = FALSE)                           0.9620    
+    ## scale(cesd_pc_preg, scale = FALSE)                           0.8333    
+    ## scale(seg_week_preg):scale(cesd_mu_preg, scale = FALSE)      0.0637 .  
+    ## scale(seg_week_preg):scale(cesd_pc_preg, scale = FALSE)      0.0631 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##                                    (Intr) sc(__) scl(csd_m_,s=FALSE)
+    ## scl(sg_wk_)                        -0.501                           
+    ## scl(csd_m_,s=FALSE)                 0.036 -0.008                    
+    ## scl(csd_p_,s=FALSE)                 0.008  0.038 -0.063             
+    ## scl(sg_wk_prg):scl(csd_m_,s=FALSE) -0.003 -0.010 -0.471             
+    ## scl(sg_wk_prg):scl(csd_p_,s=FALSE)  0.028 -0.024  0.077             
+    ##                                    scl(csd_p_,s=FALSE)
+    ## scl(sg_wk_)                                           
+    ## scl(csd_m_,s=FALSE)                                   
+    ## scl(csd_p_,s=FALSE)                                   
+    ## scl(sg_wk_prg):scl(csd_m_,s=FALSE)  0.228             
+    ## scl(sg_wk_prg):scl(csd_p_,s=FALSE) -0.331             
+    ##                                    scl(sg_wk_prg):scl(csd_m_,s=FALSE)
+    ## scl(sg_wk_)                                                          
+    ## scl(csd_m_,s=FALSE)                                                  
+    ## scl(csd_p_,s=FALSE)                                                  
+    ## scl(sg_wk_prg):scl(csd_m_,s=FALSE)                                   
+    ## scl(sg_wk_prg):scl(csd_p_,s=FALSE) -0.146
+
+``` r
+performance(mlm3preg)
+```
+
+    ## # Indices of model performance
+    ## 
+    ## AIC     |     BIC | R2 (cond.) | R2 (marg.) |   ICC |  RMSE | Sigma
+    ## -------------------------------------------------------------------
+    ## 835.969 | 892.186 |      0.916 |      0.048 | 0.912 | 0.247 | 0.298
+
+``` r
+tab_model(mlm3preg)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+scale(hcc log m)
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.07
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.12 – 0.26
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.495
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.20
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.13 – 0.27
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cesd\_mu\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.03 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.962
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cesd\_pc\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.03 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.833
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg \*<br>cesd\_mu\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.00 – 0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.061
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_preg \*<br>cesd\_pc\_preg
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.00 – 0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.062
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.09
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.75
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_preg)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.17
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(segment)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.08
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+-0.38
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.07
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ICC
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.91
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+84
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+558
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.048 / 0.916
+</td>
+</tr>
+</table>
+
+### Effects on postnatal slope
+
+``` r
+mlm3post<- lmer(
+  scale(hcc_log_m) ~ 
+    scale(seg_week_post) * scale(cesd_mu_post, scale = FALSE) +
+    scale(seg_week_post) * scale(cesd_pc_post, scale = FALSE) +
+    (scale(seg_week_post) + scale(segment) | ID),
+  data = dpost
+)
+
+summary(mlm3post)
+```
+
+    ## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+    ## lmerModLmerTest]
+    ## Formula: scale(hcc_log_m) ~ scale(seg_week_post) * scale(cesd_mu_post,  
+    ##     scale = FALSE) + scale(seg_week_post) * scale(cesd_pc_post,  
+    ##     scale = FALSE) + (scale(seg_week_post) + scale(segment) |      ID)
+    ##    Data: dpost
+    ## 
+    ## REML criterion at convergence: 380.2
+    ## 
+    ## Scaled residuals: 
+    ##      Min       1Q   Median       3Q      Max 
+    ## -2.25466 -0.40949  0.03359  0.38872  2.28799 
+    ## 
+    ## Random effects:
+    ##  Groups   Name                 Variance Std.Dev. Corr     
+    ##  ID       (Intercept)          0.65607  0.8100            
+    ##           scale(seg_week_post) 0.25450  0.5045   0.18     
+    ##           scale(segment)       0.22557  0.4749   0.38 0.85
+    ##  Residual                      0.06009  0.2451            
+    ## Number of obs: 225, groups:  ID, 57
+    ## 
+    ## Fixed effects:
+    ##                                                          Estimate Std. Error
+    ## (Intercept)                                              0.263000   0.114317
+    ## scale(seg_week_post)                                    -0.060515   0.050369
+    ## scale(cesd_mu_post, scale = FALSE)                       0.001736   0.016177
+    ## scale(cesd_pc_post, scale = FALSE)                      -0.010246   0.027842
+    ## scale(seg_week_post):scale(cesd_mu_post, scale = FALSE) -0.004948   0.007159
+    ## scale(seg_week_post):scale(cesd_pc_post, scale = FALSE)  0.005087   0.012571
+    ##                                                                df t value
+    ## (Intercept)                                             36.844371   2.301
+    ## scale(seg_week_post)                                    33.267344  -1.201
+    ## scale(cesd_mu_post, scale = FALSE)                      38.399587   0.107
+    ## scale(cesd_pc_post, scale = FALSE)                      35.544933  -0.368
+    ## scale(seg_week_post):scale(cesd_mu_post, scale = FALSE) 39.874277  -0.691
+    ## scale(seg_week_post):scale(cesd_pc_post, scale = FALSE) 70.575279   0.405
+    ##                                                         Pr(>|t|)  
+    ## (Intercept)                                               0.0272 *
+    ## scale(seg_week_post)                                      0.2381  
+    ## scale(cesd_mu_post, scale = FALSE)                        0.9151  
+    ## scale(cesd_pc_post, scale = FALSE)                        0.7151  
+    ## scale(seg_week_post):scale(cesd_mu_post, scale = FALSE)   0.4934  
+    ## scale(seg_week_post):scale(cesd_pc_post, scale = FALSE)   0.6870  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Correlation of Fixed Effects:
+    ##                                    (Intr) sc(__) scl(csd_m_,s=FALSE)
+    ## scl(sg_wk_)                        -0.082                           
+    ## scl(csd_m_,s=FALSE)                -0.011  0.000                    
+    ## scl(csd_p_,s=FALSE)                 0.051 -0.081 -0.122             
+    ## scl(sg_wk_pst):scl(csd_m_,s=FALSE)  0.007  0.050 -0.152             
+    ## scl(sg_wk_pst):scl(csd_p_,s=FALSE) -0.077 -0.035 -0.122             
+    ##                                    scl(csd_p_,s=FALSE)
+    ## scl(sg_wk_)                                           
+    ## scl(csd_m_,s=FALSE)                                   
+    ## scl(csd_p_,s=FALSE)                                   
+    ## scl(sg_wk_pst):scl(csd_m_,s=FALSE) -0.178             
+    ## scl(sg_wk_pst):scl(csd_p_,s=FALSE) -0.071             
+    ##                                    scl(sg_wk_pst):scl(csd_m_,s=FALSE)
+    ## scl(sg_wk_)                                                          
+    ## scl(csd_m_,s=FALSE)                                                  
+    ## scl(csd_p_,s=FALSE)                                                  
+    ## scl(sg_wk_pst):scl(csd_m_,s=FALSE)                                   
+    ## scl(sg_wk_pst):scl(csd_p_,s=FALSE) -0.322
+
+``` r
+performance(mlm3post)
+```
+
+    ## # Indices of model performance
+    ## 
+    ## AIC     |     BIC | R2 (cond.) | R2 (marg.) |   ICC |  RMSE | Sigma
+    ## -------------------------------------------------------------------
+    ## 406.209 | 450.618 |      0.939 |      0.008 | 0.938 | 0.179 | 0.245
+
+``` r
+tab_model(mlm3post)
+```
+
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+scale(hcc log m)
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.26
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04 – 0.49
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.021</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.06
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.16 – 0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.230
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cesd\_mu\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.03 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.915
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cesd\_pc\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.06 – 0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.713
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post \*<br>cesd\_mu\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.00
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.02 – 0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.489
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+seg\_week\_post \*<br>cesd\_pc\_post
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.01
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.02 – 0.03
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.686
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.06
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.66
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(seg\_week\_post)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.25
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub> <sub>ID.scale(segment)</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.23
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.18
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.38
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ICC
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.94
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>ID</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+57
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="3">
+225
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="3">
+0.008 / 0.939
 </td>
 </tr>
 </table>
@@ -3597,3 +5191,90 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 </td>
 </tr>
 </table>
+
+``` r
+de <- 
+  d %>% 
+  select(
+    ID,
+    timepoint, 
+    segment,
+    seg_week,
+    seg_week_preg,
+    seg_week_post,
+    seg_week_cent_birth,
+    hcc_m,
+    hcc_log_m,
+    cesd,
+    cesd_mu,
+    cesd_pc,
+    crisys,
+    crisys_mu,
+    crisys_pc,
+    mom_age_t1,
+    gestational_weeks_birth,
+    weeks_collect_t1,
+    weeks_collect_t2,
+    weeks_collect_t3,
+    hair_wash_freq_mean,
+    hair_chemexp_past5mo,
+    season,
+    mom_race,
+    mom_latinx,
+    annual_income_t1_txt
+  ) %>% 
+  arrange(ID, timepoint, segment) %>% 
+  # replace ID numbers
+  group_by(ID) %>% 
+  mutate(
+    git_id = sample(10000000,1)
+  ) %>% 
+  ungroup() %>% 
+  select(
+    git_id,
+    everything(),
+    -ID
+  )
+
+var_label(de) <- 
+  list(
+    git_id = "Participant ID number for sharing on github",
+    timepoint = "Timepoint of assessment",
+    segment = "Distance from scalp of HCC estimate, ranging from 0-1 to 4-5 cm",
+    seg_week = "Corresponding to HCC estimate, weeks since conception",
+    seg_week_preg = "Piecewise modeling term for weeks since conception in pregnancy",
+    seg_week_post = "Piecewise modeling term for weeks since birth in postnatal period",
+    seg_week_cent_birth = "seg_week centered at the gestational weeks of birth",
+    hcc_m = "Raw HCC estimate",
+    hcc_log_m = "log-transformed HCC estimate [log(hcc_m)]",
+    cesd = "Current self-reported depressive symptoms on the CES-D",
+    cesd_mu = "Mean current self-reported depressive symptoms on the CES-D",
+    cesd_pc = "Person-mean-centered current self-reported depressive symptoms on the CES-D",
+    crisys = "Recent life adversity on the CRISYS",
+    crisys_mu = "Mean recent life adversity on the CRISYS",
+    crisys_pc = "Person-mean-centered recent life adversity on the CRISYS",
+    mom_age_t1 = "Age at T1",
+    gestational_weeks_birth = "Gestational weeks of infant at birth",
+    weeks_collect_t1 = "Weeks since conception at T1 hair collection",
+    weeks_collect_t2 = "Weeks since conception at T2 hair collection",
+    weeks_collect_t3 = "Weeks since conception at T3 hair collection",
+    hair_wash_freq_mean = "Mean self-reported hair washing frequency",
+    hair_chemexp_past5mo = "Hair chemical exposure/heat treatment in last 5 months",
+    season = "Season in which hair was collected",
+    mom_race = "Self-reported race",
+    mom_latinx = "Self-reported Hispanic/Latinx ethnicity",
+    annual_income_t1_txt = "Self-reported annual household income"
+  )
+
+metadata(de)$name <- "Analysed data for \"Hair cortisol concentration across the peripartum period: Documenting changes and associations with depressive symptoms and recent adversity\" (King et al. 2021)"
+
+# rio::export(
+#   de, 
+#   "~/Desktop/BABIES/hair_cortisol/king_etal_analyzed_data_20210929.rds"
+# )
+
+# write_csv(
+#   de,
+#   "~/Desktop/BABIES/hair_cortisol/king_etal_analyzed_data_20210929.csv"
+# )
+```
